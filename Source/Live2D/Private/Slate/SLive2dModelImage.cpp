@@ -9,6 +9,38 @@ void SLive2dModelImage::Construct(const FArguments& InArgs, ULive2DMocModel* InL
 {
 	Live2DMocModel = InLive2DMocModel;
 
+	UpdateRenderData();
+	Live2DMocModel->OnDrawablesUpdated.AddRaw(this, &SLive2dModelImage::UpdateRenderData);
+}
+
+int32 SLive2dModelImage::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+{
+	int32 NewLayerId = LayerId;
+	
+	for (const auto& RenderDatum: RenderData)
+	{
+		const int32 CurrentLayerId = LayerId + RenderDatum.Layer;
+		FSlateDrawElement::MakeCustomVerts(OutDrawElements, CurrentLayerId, RenderDatum.TextureBrush.GetRenderingResource(), RenderDatum.Vertices, RenderDatum.Indices, nullptr, 0, 0);
+		NewLayerId = FMath::Max(NewLayerId, CurrentLayerId);
+	}
+	
+	return NewLayerId;
+}
+
+FVector2D SLive2dModelImage::ComputeDesiredSize(float LayoutScaleMultiplier) const
+{
+	if (!Live2DMocModel)
+	{
+		return FVector2D::ZeroVector;
+	}
+
+	FLive2DModelCanvasInfo CanvasInfo = Live2DMocModel->GetModelCanvasInfo();
+
+	return CanvasInfo.Size;
+}
+
+void SLive2dModelImage::UpdateRenderData()
+{
 	TArray<FLive2DModelDrawable> Drawables = Live2DMocModel->Drawables;
 	FLive2DModelCanvasInfo CanvasInfo = Live2DMocModel->GetModelCanvasInfo();
 	FVector2D CanvasCenter(CanvasInfo.PivotOrigin.X/CanvasInfo.PixelsPerUnit,CanvasInfo.PivotOrigin.Y/CanvasInfo.PixelsPerUnit);
@@ -67,32 +99,6 @@ void SLive2dModelImage::Construct(const FArguments& InArgs, ULive2DMocModel* InL
 		
 		RenderData.Add(ModelRenderData);
 	}
-}
-
-int32 SLive2dModelImage::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
-{
-	int32 NewLayerId = LayerId;
-	
-	for (const auto& RenderDatum: RenderData)
-	{
-		const int32 CurrentLayerId = LayerId + RenderDatum.Layer;
-		FSlateDrawElement::MakeCustomVerts(OutDrawElements, CurrentLayerId, RenderDatum.TextureBrush.GetRenderingResource(), RenderDatum.Vertices, RenderDatum.Indices, nullptr, 0, 0);
-		NewLayerId = FMath::Max(NewLayerId, CurrentLayerId);
-	}
-	
-	return NewLayerId;
-}
-
-FVector2D SLive2dModelImage::ComputeDesiredSize(float LayoutScaleMultiplier) const
-{
-	if (!Live2DMocModel)
-	{
-		return FVector2D::ZeroVector;
-	}
-
-	FLive2DModelCanvasInfo CanvasInfo = Live2DMocModel->GetModelCanvasInfo();
-
-	return CanvasInfo.Size;
 }
 
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION

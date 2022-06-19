@@ -31,12 +31,13 @@ bool ULive2DMocModel::Init(const FString& FileName)
 
 	MocSourceSize = FileHandle->Size();
 
+	uint8* Source = static_cast<uint8*>(FMemory::Malloc(MocSourceSize, csmAlignofMoc));
 	MocSource = static_cast<uint8*>(FMemory::Malloc(MocSourceSize, csmAlignofMoc));
 
-	FileHandle->Read(static_cast<uint8*>(MocSource), MocSourceSize);
 
+	FileHandle->Read(Source, MocSourceSize);
+	FMemory::Memcpy(MocSource, Source, MocSourceSize);
 	
-
 	const csmMocVersion MocVersion = csmGetMocVersion(MocSource, MocSourceSize);
 
 	if (csmGetLatestMocVersion() < MocVersion)
@@ -45,7 +46,7 @@ bool ULive2DMocModel::Init(const FString& FileName)
 		return false;
 	}
 
-	if (!InitializeMoc())
+	if (!InitializeMoc(Source))
 	{
 		UE_LOG(LogLive2D, Error, TEXT("Couldn't construct moc data structure from MOC3 file %s!"), *FileName);
 		return false;
@@ -82,7 +83,9 @@ void ULive2DMocModel::Serialize(FArchive& Ar)
 
 	if (Ar.IsLoading())
 	{
-		InitializeMoc();
+		uint8* Source = static_cast<uint8*>(FMemory::Malloc(MocSourceSize, csmAlignofMoc));
+		FMemory::Memcpy(Source, MocSource, MocSourceSize);
+		InitializeMoc(Source);
 		InitializeModel();
 	}
 }
@@ -139,6 +142,8 @@ void ULive2DMocModel::UpdateDrawables()
 		Drawable.RenderOrder = RenderOrders[ModelDrawableIndex];
 		Drawable.DynamicFlag = DynamicFlags[ModelDrawableIndex];
 	}
+	
+	OnDrawablesUpdated.Broadcast();
 }
 
 float ULive2DMocModel::GetParameterValue(const FString& ParameterName)
@@ -151,7 +156,7 @@ float ULive2DMocModel::GetParameterValue(const FString& ParameterName)
 		return 0.f;
 	}
 
-	return **ParameterValue;
+	return *ParameterValue;
 }
 
 void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables)
@@ -164,17 +169,39 @@ void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const floa
 		return;
 	}
 
-	**ParameterValue = Value;
-
+	
+	auto* parameterIds = csmGetParameterIds(Model);
+	auto* parameterValues = csmGetParameterValues(Model);
+	auto* parameterDefaultValues = csmGetParameterDefaultValues(Model);
+	// Scan array position corresponding to target ID
+	int32 targetIndex = -1;
+	for(int32 i = 0; i < ParameterValues.Num() ;++i)
+	{
+		if( strcmp("ParamMouthOpenY",parameterIds[i]) == 0 )
+		{
+			targetIndex = i;
+			break;
+		}
+	}
+	//In case that the desired ID could n't be found ID
+	if(targetIndex == -1 )
+	{
+		return;
+	}
+	
+	//Multiply the difference from reference value by the specified magnification ratio from the parameter.
+	parameterValues[targetIndex] = Value;
+	*ParameterValue = Value;
+	
 	if (bUpdateDrawables)
 	{
 		UpdateDrawables();
 	}
 }
 
-bool ULive2DMocModel::InitializeMoc()
+bool ULive2DMocModel::InitializeMoc(uint8* Source)
 {
-	Moc = csmReviveMocInPlace(MocSource, MocSourceSize);
+	Moc = csmReviveMocInPlace(Source, MocSourceSize);
 	return Moc != nullptr;
 }
 
@@ -207,7 +234,7 @@ void ULive2DMocModel::InitializeParameterList()
 	for(int32 ParameterIndex = 0; ParameterIndex < ModelParameterCount; ParameterIndex++)
 	{
 		const FString ParameterId = ModelParameterIds[ParameterIndex];
-		ParameterValues.Add(ParameterId, ModelParameterValues + ParameterIndex);
+		ParameterValues.Add(ParameterId, ModelParameterValues[ParameterIndex]);
 		ParameterDefaultValues.Add(ParameterId, ModelParameterDefaultValues[ParameterIndex]);
 		ParameterMinimumValues.Add(ParameterId, ModelParameterMinimumValues[ParameterIndex]);
 		ParameterMaximumValues.Add(ParameterId, ModelParameterMaximumValues[ParameterIndex]);

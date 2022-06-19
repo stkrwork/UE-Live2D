@@ -29,6 +29,11 @@
       "Name": "Live2DModelEditor",
       "Type": "Editor",
       "LoadingPhase": "Default"
+    },
+    {
+      "Name": "Live2DMotionEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default"
     }
   ]
 }

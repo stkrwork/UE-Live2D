@@ -16,8 +16,11 @@ class LIVE2D_API ULive2DModelMotion : public UObject, public FTickableGameObject
 	GENERATED_BODY()
 public:
 	bool Init(const FMotion3FileData& Motion3Data);
+	void RebindDelegates();
+	
 	void SetModel(ULive2DMocModel* InModel) { Model = InModel;}
 	ULive2DMocModel* GetModel() const { return Model; }
+
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	virtual bool IsTickableInEditor() const override { return true; };
@@ -38,6 +41,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bLoop;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bAreBeziersRestricted = true;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FLive2DModelMotionCurve> Curves;

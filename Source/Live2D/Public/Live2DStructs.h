@@ -44,6 +44,8 @@ struct FLive2DModelDrawable
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsInvertedMask;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FVector2D> VertexPositions;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

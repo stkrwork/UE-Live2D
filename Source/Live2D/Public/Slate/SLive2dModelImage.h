@@ -34,6 +34,9 @@ public:
 	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
 
 protected:
+
+	void UpdateRenderData();
+	
 	ULive2DMocModel* Live2DMocModel = nullptr;
 
 	TArray<FLive2DModelRenderData> RenderData;

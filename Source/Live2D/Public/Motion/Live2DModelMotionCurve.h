@@ -25,6 +25,7 @@ struct FLive2DModelMotionCurve
 	GENERATED_BODY()
 public:
 	bool Init(const FMotion3CurveData& CurveData, const FMotion3MetaData& MetaData);
+	void RebindDelegates(const bool bAreBeziersRestricted);
 
 	void UpdateParameter(ULive2DMocModel* Model, const float Time);
 	

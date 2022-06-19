@@ -26,7 +26,7 @@ void FAssetTypeActions_Live2DMocModel::OpenAssetEditor(const TArray<UObject*>& I
 	for (auto ObjIt = InObjects.CreateConstIterator(); ObjIt; ++ObjIt)
 	{
 		auto Live2DMocModel = Cast<ULive2DMocModel>(*ObjIt);
-		if (Live2DMocModel != NULL)
+		if (Live2DMocModel != nullptr)
 		{
 			FLive2DModelEditorModule* Live2DModelEditorModule = &FModuleManager::LoadModuleChecked<FLive2DModelEditorModule>("Live2DModelEditor");
 			Live2DModelEditorModule->CreateLive2dModelEditor(Mode, EditWithinLevelEditor, Live2DMocModel);

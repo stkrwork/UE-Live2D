@@ -99,6 +99,44 @@ bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData, const FMo
 	return true;
 }
 
+void FLive2DModelMotionCurve::RebindDelegates(const bool bAreBeziersRestricted)
+{	
+	for (int32 i = 0; i < Segments.Num(); i++)
+	{
+		FCurveSegment& CurveSegment = Segments[i];
+		switch (CurveSegment.SegmentType)
+		{
+		case ECurveSegmentType::LINEAR_SEGMENT:
+			{
+				CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateLinear);
+			}
+			break;
+		case ECurveSegmentType::BEZIER_SEGMENT:
+			{
+				if (bAreBeziersRestricted)
+				{
+					CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateBezier);
+				}
+				else
+				{
+					CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateBezierCardanoInterpretation);					
+				}
+			}
+			break;
+		case ECurveSegmentType::STEPPED_SEGMENT:
+			{
+				CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateStepped);
+			}
+			break;
+		case ECurveSegmentType::INVERSE_STEPPED_SEGMENT:
+			{
+				CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateInverseStepped);
+			}
+			break;
+		}
+	}
+}
+
 void FLive2DModelMotionCurve::UpdateParameter(ULive2DMocModel* Model, const float Time)
 {
 	float Value = 0.f;

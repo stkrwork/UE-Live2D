@@ -30,6 +30,10 @@ public:
 
 	float GetParameterValue(const FString& ParameterName);
 	void SetParameterValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
+
+	DECLARE_MULTICAST_DELEGATE(FOnDrawablesUpdated);
+
+	FOnDrawablesUpdated OnDrawablesUpdated;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FLive2DModelDrawable> Drawables;
@@ -37,20 +41,27 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<UTexture2D*> Textures;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TMap<FString, float> ParameterValues;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TMap<FString, float> ParameterDefaultValues;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TMap<FString, float> ParameterMaximumValues;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TMap<FString, float> ParameterMinimumValues;
+	
 private:
 
-	bool InitializeMoc();
+	bool InitializeMoc(uint8* Source);
 	bool InitializeModel();
 	void InitializeParameterList();
 	void InitializeDrawables();
 
 	UPROPERTY()
 	int32 MocSourceSize;
-
-	TMap<FString, float*> ParameterValues;
-	TMap<FString, float> ParameterDefaultValues;
-	TMap<FString, float> ParameterMaximumValues;
-	TMap<FString, float> ParameterMinimumValues;
 
 	uint8* MocSource;
 	csmMoc* Moc;
