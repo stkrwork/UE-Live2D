@@ -29,7 +29,7 @@ public:
 	void UpdateDrawables();
 
 	float GetParameterValue(const FString& ParameterName);
-	void SetParameterValue(const FString& ParameterName, const float Value);
+	void SetParameterValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FLive2DModelDrawable> Drawables;

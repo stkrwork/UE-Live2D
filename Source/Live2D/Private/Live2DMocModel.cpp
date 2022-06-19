@@ -106,6 +106,9 @@ FLive2DModelCanvasInfo ULive2DMocModel::GetModelCanvasInfo() const
 
 void ULive2DMocModel::UpdateDrawables()
 {
+	csmResetDrawableDynamicFlags(Model);
+	csmUpdateModel(Model);
+	
 	int DrawableCount = csmGetDrawableCount(Model);
 	const int* VertexCounts = csmGetDrawableVertexCounts(Model);
 	const csmVector2** VertexPositions = csmGetDrawableVertexPositions(Model);
@@ -151,7 +154,7 @@ float ULive2DMocModel::GetParameterValue(const FString& ParameterName)
 	return **ParameterValue;
 }
 
-void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const float Value)
+void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables)
 {
 	auto* ParameterValue = ParameterValues.Find(ParameterName);
 
@@ -163,9 +166,10 @@ void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const floa
 
 	**ParameterValue = Value;
 
-	csmResetDrawableDynamicFlags(Model);
-	csmUpdateModel(Model);
-	UpdateDrawables();
+	if (bUpdateDrawables)
+	{
+		UpdateDrawables();
+	}
 }
 
 bool ULive2DMocModel::InitializeMoc()

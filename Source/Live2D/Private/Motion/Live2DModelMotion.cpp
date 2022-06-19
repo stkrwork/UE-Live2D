@@ -15,3 +15,25 @@ bool ULive2DModelMotion::Init(const FMotion3FileData& Motion3Data)
 
 	return true;
 }
+
+void ULive2DModelMotion::Tick(float DeltaTime)
+{
+	CurrentTime = FMath::Min(Duration, CurrentTime + DeltaTime);
+	for (auto& Curve: Curves)
+	{
+		if (Curve.Target == ECurveTarget::TARGET_PARAMETER)
+		{
+			Curve.UpdateParameter(Model, CurrentTime);
+		}
+	}
+}
+
+TStatId ULive2DModelMotion::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(FLive2DModelMotion, STATGROUP_Live2D);
+}
+
+void ULive2DModelMotion::ToggleMotionInEditor()
+{
+	bIsAnimating = !bIsAnimating;	
+}

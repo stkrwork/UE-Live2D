@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Live2DMocModel.h"
 #include "Live2DModelMotionSegment.h"
 #include "Live2DStructs.h"
 
@@ -24,6 +25,8 @@ struct FLive2DModelMotionCurve
 	GENERATED_BODY()
 public:
 	bool Init(const FMotion3CurveData& CurveData, const FMotion3MetaData& MetaData);
+
+	void UpdateParameter(ULive2DMocModel* Model, const float Time);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

@@ -16,3 +16,5 @@ private:
 	/** Handle to the test dll we will load */
 	void* Live2DLibraryHandle = nullptr;
 };
+
+DECLARE_STATS_GROUP(TEXT("Live2D"), STATGROUP_Live2D, STATCAT_Advanced);
