@@ -1,6 +1,6 @@
 ﻿#include "Live2DModelMotionCurve.h"
 
-bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData)
+bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData, const FMotion3MetaData& MetaData)
 {
 	if (CurveData.Target == TEXT("Model"))
 	{
@@ -52,8 +52,14 @@ bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData)
 			break;
 		case ECurveSegmentType::BEZIER_SEGMENT:
 			{
-				// TODO add support for cardano algo
-				Segment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateBezier);
+				if (MetaData.bAreBeziersRestricted)
+				{
+					Segment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateBezier);
+				}
+				else
+				{
+					Segment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateBezierCardanoInterpretation);					
+				}
 				Point.Time = CurveData.Segments[i++];
 				Point.Value = CurveData.Segments[i++];
 				Points.Add(Point);

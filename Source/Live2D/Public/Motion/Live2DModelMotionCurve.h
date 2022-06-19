@@ -23,7 +23,7 @@ struct FLive2DModelMotionCurve
 {
 	GENERATED_BODY()
 public:
-	bool Init(const FMotion3CurveData& CurveData);
+	bool Init(const FMotion3CurveData& CurveData, const FMotion3MetaData& MetaData);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
