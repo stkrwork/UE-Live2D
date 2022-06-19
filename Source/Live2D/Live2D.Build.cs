@@ -1,5 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+using System.IO;
 using UnrealBuildTool;
 
 public class Live2D : ModuleRules
@@ -15,12 +16,7 @@ public class Live2D : ModuleRules
 			);
 				
 		
-		PrivateIncludePaths.AddRange(
-			new string[] {
-				// ... add other private include paths required here ...
-			}
-			);
-			
+		PrivateIncludePaths.AddRange(Directory.GetDirectories(ModuleDirectory, "*", SearchOption.AllDirectories));
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]

@@ -3,14 +3,10 @@
 
 #include "Model3JsonImportFactory.h"
 
-#include "Editor.h"
-#include "ImageUtils.h"
 #include "Live2DEditorLogCategory.h"
 #include "Live2DMocModel.h"
 #include "Misc/MessageDialog.h"
 #include "Json.h"
-#include "JsonObjectConverter.h"
-#include "Live2DEditorStructs.h"
 #include "Live2DEditorUtils.h"
 #include "Factories/Texture2dFactoryNew.h"
 #include "Factories/TextureFactory.h"

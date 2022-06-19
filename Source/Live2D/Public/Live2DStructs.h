@@ -84,3 +84,119 @@ struct FLive2DModelPart
 
 	float* Opacity;
 };
+
+USTRUCT(BlueprintType)
+struct FMotion3CurveData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString Target;
+
+	UPROPERTY()
+	FString Id;
+
+	UPROPERTY()
+	TArray<float> Segments;
+};
+USTRUCT(BlueprintType)
+struct FModel3MotionFileData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString File;
+};
+
+USTRUCT(BlueprintType)
+struct FModel3MotionFileArrayData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FModel3MotionFileData> Motions;
+};
+
+USTRUCT(BlueprintType)
+struct FModel3Data
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString Moc;
+	
+	UPROPERTY()
+	TArray<FString> Textures;
+	
+	UPROPERTY()
+	FString Physics;
+	
+	UPROPERTY()
+	FString DisplayInfo;
+
+	UPROPERTY()
+	TMap<FString, FModel3MotionFileArrayData> Motions;
+	
+};
+
+USTRUCT(BlueprintType)
+struct FMotion3UserData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	float Time;
+
+	UPROPERTY()
+	FString Value;
+};
+USTRUCT(BlueprintType)
+struct FMotion3MetaData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	float Duration;
+
+	UPROPERTY()
+	float FPS;
+
+	UPROPERTY()
+	bool bLoop;
+
+	UPROPERTY()
+	bool bAreBeziersRestricted;
+
+	UPROPERTY()
+	int32 CurveCount;
+
+	UPROPERTY()
+	int32 TotalSegmentCount;
+
+	UPROPERTY()
+	int32 TotalPointCount;
+
+	UPROPERTY()
+	int32 UserDataCount;
+
+	UPROPERTY()
+	int32 TotalUserDataSize;
+};
+
+USTRUCT(BlueprintType)
+struct FMotion3FileData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 Version;
+
+	UPROPERTY()
+	FMotion3MetaData Meta;
+
+	UPROPERTY()
+	TArray<FMotion3UserData> UserData; 
+
+	UPROPERTY()
+	TArray<FMotion3CurveData> Curves; 
+};

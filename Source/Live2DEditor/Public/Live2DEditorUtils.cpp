@@ -32,3 +32,11 @@ FModel3Data Live2DEditorUtils::CreateModel3DataFromJsonString(const FString& Jso
 
 	return Model3Data;
 }
+
+FMotion3FileData Live2DEditorUtils::CreateMotion3FileDataFromJsonString(const FString& JsonString)
+{
+	FMotion3FileData Motion3FileData;
+	FJsonObjectConverter::JsonObjectStringToUStruct<FMotion3FileData>(JsonString, &Motion3FileData, 0, 0);
+
+	return Motion3FileData;
+}

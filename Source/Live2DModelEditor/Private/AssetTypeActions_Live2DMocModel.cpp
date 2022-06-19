@@ -38,3 +38,5 @@ uint32 FAssetTypeActions_Live2DMocModel::GetCategories()
 {
 	return EAssetTypeCategories::Misc;
 }
+
+#undef LOCTEXT_NAMESPACE

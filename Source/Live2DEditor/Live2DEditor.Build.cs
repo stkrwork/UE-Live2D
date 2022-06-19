@@ -9,7 +9,8 @@ public class Live2DEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core",
+                "Core", 
+                "Live2D",
             }
         );
 
@@ -19,8 +20,7 @@ public class Live2DEditor : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore", 
-                "Live2D",
+                "SlateCore",
                 "UnrealEd",
                 "Json",
                 "JsonUtilities"
