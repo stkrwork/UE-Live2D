@@ -9,7 +9,7 @@ bool ULive2DModelMotion::Init(const FMotion3FileData& Motion3Data)
 	for (const auto& Curve: Motion3Data.Curves)
 	{
 		FLive2DModelMotionCurve MotionCurve;
-		MotionCurve.Init(Curve);
+		MotionCurve.Init(Curve, Motion3Data.Meta);
 		Curves.Add(MotionCurve);
 	}
 

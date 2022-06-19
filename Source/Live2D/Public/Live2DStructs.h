@@ -97,6 +97,12 @@ struct FMotion3CurveData
 	FString Id;
 
 	UPROPERTY()
+	float FadeInTime = -1.f;
+
+	UPROPERTY()
+	float FadeOutTime = -1.f;
+
+	UPROPERTY()
 	TArray<float> Segments;
 };
 USTRUCT(BlueprintType)

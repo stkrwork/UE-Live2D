@@ -14,6 +14,9 @@ bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData, const FMo
 	{
 		Target = ECurveTarget::TARGET_PART_OPACITY;
 	}
+
+	FadeInTime = CurveData.FadeInTime;
+	FadeOutTime = CurveData.FadeOutTime;
 	
 	Id = CurveData.Id;
 	

@@ -31,6 +31,12 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FString Id;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float FadeInTime = -1.f;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float FadeOutTime = -1.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FCurveSegment> Segments;
