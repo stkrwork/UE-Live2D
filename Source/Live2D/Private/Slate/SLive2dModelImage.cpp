@@ -66,8 +66,7 @@ void SLive2dModelImage::UpdateRenderData()
 				                                     FColor::White);
 
 
-			//Vertex.Position.X = (Vertex.Position.X/CanvasInfo.PixelsPerUnit) - (CanvasCenter.X * CanvasDimensions.X);
-			//Vertex.Position.Y = (CanvasCenter.Y * CanvasDimensions.Y) - (Vertex.Position.Y/CanvasInfo.PixelsPerUnit);
+			// TODO move vertices to correct position so nothing gets rendered off-screen
 			Vertex.Position *= CanvasInfo.Size;
 			Vertex.Position.X += (CanvasInfo.Size.X * CanvasCenter.X);
 			Vertex.Position.Y += (CanvasInfo.Size.Y * CanvasCenter.Y);
