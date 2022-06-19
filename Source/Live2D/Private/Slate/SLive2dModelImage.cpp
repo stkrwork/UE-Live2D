@@ -1,12 +1,11 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-
-#include "SLive2dModelPreview.h"
+#include "SLive2dModelImage.h"
 #include "SlateOptMacros.h"
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
-void SLive2dModelPreview::Construct(const FArguments& InArgs, ULive2DMocModel* InLive2DMocModel)
+void SLive2dModelImage::Construct(const FArguments& InArgs, ULive2DMocModel* InLive2DMocModel)
 {
 	Live2DMocModel = InLive2DMocModel;
 
@@ -70,7 +69,7 @@ void SLive2dModelPreview::Construct(const FArguments& InArgs, ULive2DMocModel* I
 	}
 }
 
-int32 SLive2dModelPreview::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
+int32 SLive2dModelImage::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	int32 NewLayerId = LayerId;
 	
@@ -84,7 +83,7 @@ int32 SLive2dModelPreview::OnPaint(const FPaintArgs& Args, const FGeometry& Allo
 	return NewLayerId;
 }
 
-FVector2D SLive2dModelPreview::ComputeDesiredSize(float LayoutScaleMultiplier) const
+FVector2D SLive2dModelImage::ComputeDesiredSize(float LayoutScaleMultiplier) const
 {
 	if (!Live2DMocModel)
 	{

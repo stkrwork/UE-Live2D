@@ -25,7 +25,9 @@ public class Live2D : ModuleRules
 				"CoreUObject",
 				"Live2DLibrary",
 				"Projects", 
-				"Engine"
+				"Engine",
+				"SlateCore",
+				"Slate"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

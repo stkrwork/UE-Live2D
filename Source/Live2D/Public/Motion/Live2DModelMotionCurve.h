@@ -27,14 +27,14 @@ public:
 	bool Init(const FMotion3CurveData& CurveData, const FMotion3MetaData& MetaData);
 
 	void UpdateParameter(ULive2DMocModel* Model, const float Time);
-
-protected:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ECurveTarget Target = ECurveTarget::INVALID_TARGET;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FString Id;
-	
+
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float FadeInTime = -1.f;
 	

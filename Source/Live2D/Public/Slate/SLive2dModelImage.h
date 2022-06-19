@@ -18,10 +18,10 @@ struct FLive2DModelRenderData
 /**
  * 
  */
-class LIVE2DMODELEDITOR_API SLive2dModelPreview : public SLeafWidget
+class LIVE2D_API SLive2dModelImage : public SLeafWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SLive2dModelPreview)
+	SLATE_BEGIN_ARGS(SLive2dModelImage)
 		{
 		}
 

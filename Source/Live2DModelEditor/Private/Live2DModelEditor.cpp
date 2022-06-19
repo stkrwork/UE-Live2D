@@ -7,7 +7,7 @@
 #include "Editor.h"
 #include "Toolkits/AssetEditorToolkit.h"
 #include "Live2DModelEditorModule.h"
-#include "SLive2dModelPreview.h"
+#include "Slate/SLive2dModelImage.h"
 #include "Widgets/Layout/SScaleBox.h"
 
 #define LOCTEXT_NAMESPACE "Live2DModelEditor"
@@ -61,7 +61,7 @@ void FLive2DModelEditor::InitLive2DModelEditor(const EToolkitMode::Type Mode, co
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	const FDetailsViewArgs DetailsViewArgs(bIsUpdatable, bIsLockable, true, FDetailsViewArgs::ObjectsUseNameArea, false);
 	DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
-	SAssignNew(Live2DModelPreview, SLive2dModelPreview, InLive2DMocModel);
+	SAssignNew(Live2DModelPreview, SLive2dModelImage, InLive2DMocModel);
 
 	// Create the layout of our custom asset editor
 	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout("Standalone_Live2DModelEditor_Layout_v1")
