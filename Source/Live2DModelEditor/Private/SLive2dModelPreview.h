@@ -1,0 +1,40 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Live2DMocModel.h"
+#include "Widgets/SWidget.h"
+
+struct FLive2DModelRenderData
+{
+	TArray<FSlateVertex> Vertices;
+	TArray<SlateIndex> Indices;
+	FSlateBrush TextureBrush;
+	int32 Layer;
+	UTexture2D* Texture;
+};
+
+/**
+ * 
+ */
+class LIVE2DMODELEDITOR_API SLive2dModelPreview : public SLeafWidget
+{
+public:
+	SLATE_BEGIN_ARGS(SLive2dModelPreview)
+		{
+		}
+
+	SLATE_END_ARGS()
+
+	/** Constructs this widget with InArgs */
+	void Construct(const FArguments& InArgs, ULive2DMocModel* InLive2DMocModel);
+
+	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
+	virtual FVector2D ComputeDesiredSize(float LayoutScaleMultiplier) const override;
+
+protected:
+	ULive2DMocModel* Live2DMocModel = nullptr;
+
+	TArray<FLive2DModelRenderData> RenderData;
+};
