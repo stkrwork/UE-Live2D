@@ -230,14 +230,10 @@ void ULive2DMocModel::InitializeDrawables()
 	const int* MaskCounts = csmGetDrawableMaskCounts(Model);
 	const int** Masks = csmGetDrawableMasks(Model);
 
-	int32 TexturesSize = INDEX_NONE;
-
 	for (int32 ModelDrawableIndex = 0; ModelDrawableIndex < DrawableCount; ModelDrawableIndex++)
 	{
 		FLive2DModelDrawable& Drawable = Drawables[ModelDrawableIndex];
 		Drawable.TextureIndex = TextureIndices[ModelDrawableIndex];
-
-		TexturesSize = FMath::Max(TexturesSize, Drawable.TextureIndex);
 
 		if ((ConstantFlags[ModelDrawableIndex] & csmBlendAdditive) == csmBlendAdditive)
 		{
@@ -293,6 +289,4 @@ void ULive2DMocModel::InitializeDrawables()
 			//Drawable.MaskLinks = &Drawables[Masks[ModelDrawableIndex][MaskIndex]];
 		}
 	}
-
-	Textures.SetNumZeroed(TexturesSize + 1);
 }

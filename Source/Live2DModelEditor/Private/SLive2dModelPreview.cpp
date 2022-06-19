@@ -4,8 +4,6 @@
 #include "SLive2dModelPreview.h"
 #include "SlateOptMacros.h"
 
-
-
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 void SLive2dModelPreview::Construct(const FArguments& InArgs, ULive2DMocModel* InLive2DMocModel)
@@ -47,6 +45,10 @@ void SLive2dModelPreview::Construct(const FArguments& InArgs, ULive2DMocModel* I
 			Vertex.TexCoords[1] = 1 - Vertex.TexCoords[1];
 
 			Vertex.Color.A = Drawable.Opacity*255.f;
+
+			auto ScaledTransform = FSlateRenderTransform(0.5f);
+
+			Vertex.Position = TransformPoint(ScaledTransform, Vertex.Position);
 			
 			ModelRenderData.Vertices.Add(Vertex);
 		}
@@ -59,8 +61,8 @@ void SLive2dModelPreview::Construct(const FArguments& InArgs, ULive2DMocModel* I
 		UTexture2D* Texture = Live2DMocModel->Textures[Drawable.TextureIndex];
 		ModelRenderData.Texture = Texture;
 		ModelRenderData.TextureBrush.SetResourceObject(Texture);
-		ModelRenderData.TextureBrush.ImageSize.X = Texture->GetSizeX();
-		ModelRenderData.TextureBrush.ImageSize.Y = Texture->GetSizeY();
+		ModelRenderData.TextureBrush.ImageSize.X = Texture ? Texture->GetSizeX() : 0;
+		ModelRenderData.TextureBrush.ImageSize.Y = Texture ? Texture->GetSizeY() : 0;
 
 		ModelRenderData.Layer = Drawable.RenderOrder;
 		

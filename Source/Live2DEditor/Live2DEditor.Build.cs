@@ -21,7 +21,9 @@ public class Live2DEditor : ModuleRules
                 "Slate",
                 "SlateCore", 
                 "Live2D",
-                "UnrealEd"
+                "UnrealEd",
+                "Json",
+                "JsonUtilities"
             }
         );
     }
