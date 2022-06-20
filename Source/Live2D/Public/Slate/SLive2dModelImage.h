@@ -45,4 +45,6 @@ protected:
 
 	TArray<FLive2DModelRenderData> RenderData;
 	float ScaleFactor = 1.f;
+
+	FSlateBrush* RenderTargetBrush = nullptr;
 };

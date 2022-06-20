@@ -3,10 +3,13 @@
 
 #include "Live2DMocModel.h"
 
+#include "CanvasItem.h"
 #include "Live2DLogCategory.h"
 #include "HAL/PlatformFilemanager.h"
 #include "Misc/FileHelper.h"
 #include "Live2DCubismCore.h"
+#include "Engine/Canvas.h"
+#include "Kismet/KismetRenderingLibrary.h"
 
 bool ULive2DMocModel::Init(const FString& FileName)
 {	
@@ -269,6 +272,85 @@ void ULive2DMocModel::SetPartOpacityValue(const FString& ParameterName, const fl
 	{
 		UpdateDrawables();
 	}
+}
+
+FSlateBrush& ULive2DMocModel::GetTexture2DRenderTarget()
+{
+	auto CanvasInfo = GetModelCanvasInfo();
+	RenderTarget2D = NewObject<UTextureRenderTarget2D>(this);
+	check(RenderTarget2D);
+	RenderTarget2D->RenderTargetFormat = RTF_RGBA16f;
+	RenderTarget2D->ClearColor = FLinearColor::Transparent;
+	RenderTarget2D->bAutoGenerateMips = true;
+	RenderTarget2D->InitAutoFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y);	
+	RenderTarget2D->UpdateResourceImmediate(true);
+
+	UCanvas* Canvas;
+
+	FDrawToRenderTargetContext Context;
+	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(GWorld, RenderTarget2D, Canvas, CanvasInfo.Size, Context);
+
+	for (const auto& Drawable: Drawables)
+	{
+		TArray<FCanvasUVTri> TriangleList;
+
+		for (int32 i = 0; i < Drawable.VertexIndices.Num(); i += 3)
+		{
+			const int32 VertexIndex0 = Drawable.VertexIndices[i];
+			const int32 VertexIndex1 = Drawable.VertexIndices[i+1];
+			const int32 VertexIndex2 = Drawable.VertexIndices[i+2];
+			
+			FCanvasUVTri Triangle;
+			Triangle.V0_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex0], CanvasInfo);
+			Triangle.V1_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex1], CanvasInfo);
+			Triangle.V2_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex2], CanvasInfo);
+			Triangle.V0_UV = Drawable.VertexUVs[VertexIndex0];
+			Triangle.V0_UV.Y = 1 - Triangle.V0_UV.Y;
+			Triangle.V1_UV = Drawable.VertexUVs[VertexIndex1];
+			Triangle.V1_UV.Y = 1 - Triangle.V1_UV.Y;
+			Triangle.V2_UV = Drawable.VertexUVs[VertexIndex2];
+			Triangle.V2_UV.Y = 1 - Triangle.V2_UV.Y;
+			Triangle.V0_Color = FLinearColor::White;
+			Triangle.V1_Color = FLinearColor::White;
+			Triangle.V2_Color = FLinearColor::White;
+
+			TriangleList.Add(Triangle);
+		}
+		
+		FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
+		TriangleItem.BlendMode = SE_BLEND_Masked;
+
+		Canvas->DrawItem(TriangleItem);
+	}
+
+	RenderTargetBrush.SetResourceObject(RenderTarget2D);
+	
+	return RenderTargetBrush; 
+}
+
+FVector2D ULive2DMocModel::ProcessVertex(FVector2D Vertex, const FLive2DModelCanvasInfo& CanvasInfo)
+{
+	FVector2D CanvasCenter(CanvasInfo.PivotOrigin.X/CanvasInfo.PixelsPerUnit,CanvasInfo.PivotOrigin.Y/CanvasInfo.PixelsPerUnit);
+	FVector2D CanvasDimensions(CanvasInfo.Size.X/CanvasInfo.PixelsPerUnit,CanvasInfo.Size.Y/CanvasInfo.PixelsPerUnit);
+	Vertex *= CanvasInfo.Size;
+	Vertex.X += (CanvasInfo.Size.X * CanvasCenter.X);
+	Vertex.Y += (CanvasInfo.Size.Y * CanvasCenter.Y);
+
+	// TODO move vertices to correct position so nothing gets rendered off-screen
+	if (CanvasCenter.X != 0.5f)
+	{
+		Vertex.X += CanvasInfo.Size.X * (CanvasCenter.X - 0.5f);
+	}
+	
+	// TODO move vertices to correct position so nothing gets rendered off-screen
+	if (CanvasCenter.Y != 0.5f)
+	{
+		Vertex.Y -= CanvasInfo.Size.Y * (CanvasCenter.Y - 0.5f);
+	}
+	
+	Vertex.Y = CanvasInfo.Size.Y - Vertex.Y;
+
+	return Vertex;
 }
 
 bool ULive2DMocModel::InitializeMoc(uint8* Source)

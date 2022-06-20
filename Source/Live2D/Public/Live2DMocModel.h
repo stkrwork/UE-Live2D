@@ -34,6 +34,8 @@ public:
 	float GetPartOpacityValue(const FString& ParameterName);
 	void SetPartOpacityValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 
+	FSlateBrush& GetTexture2DRenderTarget();
+
 	DECLARE_MULTICAST_DELEGATE(FOnDrawablesUpdated);
 
 	FOnDrawablesUpdated OnDrawablesUpdated;
@@ -58,9 +60,16 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TMap<FString, float> ParameterMinimumValues;
-	
+
+	UPROPERTY()
+	UTextureRenderTarget2D* RenderTarget2D = nullptr;
+
+	UPROPERTY()
+	FSlateBrush RenderTargetBrush;
+
 private:
 
+	FVector2D ProcessVertex(FVector2D Vertex, const FLive2DModelCanvasInfo& CanvasInfo);
 	bool InitializeMoc(uint8* Source);
 	bool InitializeModel();
 	void InitializeParameterList();
