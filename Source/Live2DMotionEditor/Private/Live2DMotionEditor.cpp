@@ -128,6 +128,12 @@ void FLive2DMotionEditor::InitLive2DMotionEditor(const EToolkitMode::Type Mode, 
 	{
 		MotionDetailsView->SetObject((UObject*)InLive2DMotion);
 	}
+	
+	// Set the asset we are editing in the details view
+	if (ModelDetailsView.IsValid())
+	{
+		ModelDetailsView->SetObject((UObject*)InLive2DMotion->GetModel());
+	}
 }
 
 FLive2DMotionEditor::~FLive2DMotionEditor()
@@ -198,7 +204,7 @@ TSharedRef<SDockTab> FLive2DMotionEditor::SpawnModelPropertiesTab(const FSpawnTa
 {
 	
 	// Make sure we have the correct tab id
-	check(Args.GetTabId() == MotionPropertiesTabId);
+	check(Args.GetTabId() == ModelPropertiesTabId);
 
 	// Return a new slate dockable tab that contains our details view
 	return SNew(SDockTab)

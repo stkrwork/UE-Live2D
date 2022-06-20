@@ -5,6 +5,7 @@ bool ULive2DModelMotion::Init(const FMotion3FileData& Motion3Data)
 	Duration = Motion3Data.Meta.Duration;
 	bLoop = Motion3Data.Meta.bLoop;
 	FPS = Motion3Data.Meta.FPS;
+	DeltaTime = 1.f/FPS;
 	bAreBeziersRestricted = Motion3Data.Meta.bAreBeziersRestricted;
 
 	for (const auto& Curve: Motion3Data.Curves)
@@ -25,16 +26,31 @@ void ULive2DModelMotion::RebindDelegates()
 	}	
 }
 
-void ULive2DModelMotion::Tick(float DeltaTime)
+void ULive2DModelMotion::Tick(float Delta)
 {
-	CurrentTime = FMath::Min(Duration, CurrentTime + DeltaTime);
+	TimeSinceLastDelta += Delta;
+
+	if (TimeSinceLastDelta < DeltaTime)
+	{
+		return;
+	}
+
+	TimeSinceLastDelta = 0.f;
+	
+	CurrentTime = FMath::Min(Duration, CurrentTime + Delta);
 	for (auto& Curve: Curves)
 	{
 		if (Curve.Target == ECurveTarget::TARGET_PARAMETER)
 		{
 			Curve.UpdateParameter(Model, CurrentTime);
 		}
+		else if (Curve.Target == ECurveTarget::TARGET_PART_OPACITY)
+		{
+			Curve.UpdatePartOpacity(Model, CurrentTime);
+		}
 	}
+
+	Model->UpdateDrawables();
 
 	if (FMath::IsNearlyEqual(CurrentTime, Duration) && bLoop)
 	{
@@ -49,5 +65,6 @@ TStatId ULive2DModelMotion::GetStatId() const
 
 void ULive2DModelMotion::ToggleMotionInEditor()
 {
+	DeltaTime = 1.f/FPS;
 	bIsAnimating = !bIsAnimating;	
 }

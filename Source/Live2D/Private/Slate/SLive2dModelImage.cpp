@@ -5,6 +5,12 @@
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
+SLive2dModelImage::~SLive2dModelImage()
+{
+	Live2DMocModel->OnDrawablesUpdated.RemoveAll(this);
+	Live2DMocModel = nullptr;
+}
+
 void SLive2dModelImage::Construct(const FArguments& InArgs, ULive2DMocModel* InLive2DMocModel)
 {
 	Live2DMocModel = InLive2DMocModel;
@@ -39,6 +45,15 @@ FVector2D SLive2dModelImage::ComputeDesiredSize(float LayoutScaleMultiplier) con
 	return CanvasInfo.Size;
 }
 
+FReply SLive2dModelImage::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
+{
+	float Delta = MouseEvent.GetWheelDelta();
+	ScaleFactor += Delta/10.f;
+	UpdateRenderData();
+	
+	return FReply::Handled();
+}
+
 void SLive2dModelImage::UpdateRenderData()
 {
 	TArray<FLive2DModelDrawable> Drawables = Live2DMocModel->Drawables;
@@ -66,18 +81,30 @@ void SLive2dModelImage::UpdateRenderData()
 				                                     FColor::White);
 
 
-			// TODO move vertices to correct position so nothing gets rendered off-screen
 			Vertex.Position *= CanvasInfo.Size;
 			Vertex.Position.X += (CanvasInfo.Size.X * CanvasCenter.X);
 			Vertex.Position.Y += (CanvasInfo.Size.Y * CanvasCenter.Y);
+
+			// TODO move vertices to correct position so nothing gets rendered off-screen
+			if (CanvasCenter.X != 0.5f)
+			{
+				Vertex.Position.X += CanvasInfo.Size.X * (CanvasCenter.X - 0.5f);
+			}
+			
+			// TODO move vertices to correct position so nothing gets rendered off-screen
+			if (CanvasCenter.Y != 0.5f)
+			{
+				Vertex.Position.Y -= CanvasInfo.Size.Y * (CanvasCenter.Y - 0.5f);
+			}
+
+			
 			Vertex.Position.Y = CanvasInfo.Size.Y - Vertex.Position.Y;
 
 			Vertex.TexCoords[1] = 1 - Vertex.TexCoords[1];
 
 			Vertex.Color.A = Drawable.Opacity*255.f;
 
-			auto ScaledTransform = FSlateRenderTransform(0.5f);
-
+			FSlateRenderTransform ScaledTransform(ScaleFactor);
 			Vertex.Position = TransformPoint(ScaledTransform, Vertex.Position);
 			
 			ModelRenderData.Vertices.Add(Vertex);
@@ -98,6 +125,8 @@ void SLive2dModelImage::UpdateRenderData()
 		
 		RenderData.Add(ModelRenderData);
 	}
+
+	Invalidate(EInvalidateWidgetReason::Paint);
 }
 
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION

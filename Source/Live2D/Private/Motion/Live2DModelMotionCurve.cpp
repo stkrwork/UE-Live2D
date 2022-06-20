@@ -158,3 +158,25 @@ void FLive2DModelMotionCurve::UpdateParameter(ULive2DMocModel* Model, const floa
 
 	Model->SetParameterValue(Id, Value);
 }
+
+void FLive2DModelMotionCurve::UpdatePartOpacity(ULive2DMocModel* Model, const float Time)
+{
+	float Value = 0.f;
+	for (int32 i = 0; i < Segments.Num(); i++)
+	{
+		FCurveSegment CurveSegment = Segments[i];
+		auto Point = Points[CurveSegment.PointIndex];
+		if (Point.Time > Time)
+		{
+			Value = CurveSegment.EvaluateDelegate.Execute(&Points[CurveSegment.PointIndex], Time);
+			break;
+		}
+
+		if (i == Segments.Num() -1)
+		{
+			Value = Point.Value;
+		}
+	}
+
+	Model->SetPartOpacityValue(Id, Value);
+}

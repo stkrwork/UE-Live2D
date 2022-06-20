@@ -152,7 +152,7 @@ float ULive2DMocModel::GetParameterValue(const FString& ParameterName)
 
 	if (!ParameterValue)
 	{
-		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::GetParameterValue: Parameter doesn't exist on Live 2D Model!"));
+		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::GetParameterValue: Parameter %s doesn't exist on Live 2D Model!"), *ParameterName);
 		return 0.f;
 	}
 
@@ -165,19 +165,18 @@ void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const floa
 
 	if (!ParameterValue)
 	{
-		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::SetParameterValue: Parameter doesn't exist on Live 2D Model!"));
+		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::SetParameterValue: Parameter %s doesn't exist on Live 2D Model!"), *ParameterName);
 		return;
 	}
 
 	
 	auto* parameterIds = csmGetParameterIds(Model);
 	auto* parameterValues = csmGetParameterValues(Model);
-	auto* parameterDefaultValues = csmGetParameterDefaultValues(Model);
 	// Scan array position corresponding to target ID
 	int32 targetIndex = -1;
 	for(int32 i = 0; i < ParameterValues.Num() ;++i)
 	{
-		if( strcmp("ParamMouthOpenY",parameterIds[i]) == 0 )
+		if( ParameterName.Compare(parameterIds[i]) == 0 )
 		{
 			targetIndex = i;
 			break;
@@ -192,6 +191,58 @@ void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const floa
 	//Multiply the difference from reference value by the specified magnification ratio from the parameter.
 	parameterValues[targetIndex] = Value;
 	*ParameterValue = Value;
+	
+	if (bUpdateDrawables)
+	{
+		UpdateDrawables();
+	}
+}
+
+float ULive2DMocModel::GetPartOpacityValue(const FString& ParameterName)
+{
+	auto* PartOpacity = PartOpacities.Find(ParameterName);
+
+	if (!PartOpacity)
+	{
+		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::GetPartOpacityValue: Part Opacity Parameter %s doesn't exist on Live 2D Model!"), *ParameterName);
+		return 0.f;
+	}
+
+	return *PartOpacity;
+}
+
+void ULive2DMocModel::SetPartOpacityValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables)
+{
+	auto* PartOpacity = PartOpacities.Find(ParameterName);
+
+	if (!PartOpacity)
+	{
+		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::SetPartOpacityValue: Part Opacity Parameter %s doesn't exist on Live 2D Model!"), *ParameterName);
+		return;
+	}
+
+	
+	const char** ModelPartIds = csmGetPartIds(Model);
+	float* ModelPartOpacities = csmGetPartOpacities(Model);
+	// Scan array position corresponding to target ID
+	int32 targetIndex = -1;
+	for(int32 i = 0; i < ParameterValues.Num() ;++i)
+	{
+		if( ParameterName.Compare(ModelPartIds[i]) == 0 )
+		{
+			targetIndex = i;
+			break;
+		}
+	}
+	//In case that the desired ID could n't be found ID
+	if(targetIndex == -1 )
+	{
+		return;
+	}
+	
+	//Multiply the difference from reference value by the specified magnification ratio from the parameter.
+	ModelPartOpacities[targetIndex] = Value;
+	*PartOpacity = Value;
 	
 	if (bUpdateDrawables)
 	{
@@ -216,6 +267,7 @@ bool ULive2DMocModel::InitializeModel()
 	if (Model)
 	{
 		InitializeParameterList();
+		InitializePartOpacities();
 		InitializeDrawables();
 	}
 	
@@ -238,6 +290,19 @@ void ULive2DMocModel::InitializeParameterList()
 		ParameterDefaultValues.Add(ParameterId, ModelParameterDefaultValues[ParameterIndex]);
 		ParameterMinimumValues.Add(ParameterId, ModelParameterMinimumValues[ParameterIndex]);
 		ParameterMaximumValues.Add(ParameterId, ModelParameterMaximumValues[ParameterIndex]);
+	}
+}
+
+void ULive2DMocModel::InitializePartOpacities()
+{
+	const int32 PartCount = csmGetPartCount(Model);
+	const char** ModelPartIds = csmGetPartIds(Model);
+	float* ModelPartOpacities = csmGetPartOpacities(Model);
+
+	for(int32 PartIndex = 0; PartIndex < PartCount; PartIndex++)
+	{
+		const FString PartId = ModelPartIds[PartIndex];
+		PartOpacities.Add(PartId, ModelPartOpacities[PartIndex]);
 	}
 }
 

@@ -21,7 +21,7 @@ public:
 	void SetModel(ULive2DMocModel* InModel) { Model = InModel;}
 	ULive2DMocModel* GetModel() const { return Model; }
 
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float Delta) override;
 	virtual TStatId GetStatId() const override;
 	virtual bool IsTickableInEditor() const override { return true; };
 	virtual bool IsTickable() const override { return bIsAnimating; };
@@ -48,7 +48,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FLive2DModelMotionCurve> Curves;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float DeltaTime = 0.f;
+	
 	float CurrentTime = 0.f;
+	float TimeSinceLastDelta = 0.f;
 
 	bool bIsAnimating = false;
 };

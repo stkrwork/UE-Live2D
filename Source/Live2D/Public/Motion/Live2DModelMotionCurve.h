@@ -28,6 +28,7 @@ public:
 	void RebindDelegates(const bool bAreBeziersRestricted);
 
 	void UpdateParameter(ULive2DMocModel* Model, const float Time);
+	void UpdatePartOpacity(ULive2DMocModel* Model, const float Time);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ECurveTarget Target = ECurveTarget::INVALID_TARGET;

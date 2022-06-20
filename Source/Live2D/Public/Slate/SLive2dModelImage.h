@@ -27,6 +27,8 @@ public:
 
 	SLATE_END_ARGS()
 
+	virtual ~SLive2dModelImage() override;
+	
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs, ULive2DMocModel* InLive2DMocModel);
 
@@ -35,9 +37,12 @@ public:
 
 protected:
 
+	virtual FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
+
 	void UpdateRenderData();
 	
 	ULive2DMocModel* Live2DMocModel = nullptr;
 
 	TArray<FLive2DModelRenderData> RenderData;
+	float ScaleFactor = 0.5f;
 };

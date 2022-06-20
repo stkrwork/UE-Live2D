@@ -31,6 +31,9 @@ public:
 	float GetParameterValue(const FString& ParameterName);
 	void SetParameterValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 
+	float GetPartOpacityValue(const FString& ParameterName);
+	void SetPartOpacityValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
+
 	DECLARE_MULTICAST_DELEGATE(FOnDrawablesUpdated);
 
 	FOnDrawablesUpdated OnDrawablesUpdated;
@@ -40,6 +43,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<UTexture2D*> Textures;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TMap<FString, float> PartOpacities;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TMap<FString, float> ParameterValues;
@@ -58,6 +64,7 @@ private:
 	bool InitializeMoc(uint8* Source);
 	bool InitializeModel();
 	void InitializeParameterList();
+	void InitializePartOpacities();
 	void InitializeDrawables();
 
 	UPROPERTY()
