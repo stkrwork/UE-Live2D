@@ -44,5 +44,5 @@ protected:
 	ULive2DMocModel* Live2DMocModel = nullptr;
 
 	TArray<FLive2DModelRenderData> RenderData;
-	float ScaleFactor = 0.5f;
+	float ScaleFactor = 1.f;
 };

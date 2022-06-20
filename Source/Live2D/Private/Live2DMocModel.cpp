@@ -142,6 +142,11 @@ void ULive2DMocModel::UpdateDrawables()
 		Drawable.RenderOrder = RenderOrders[ModelDrawableIndex];
 		Drawable.DynamicFlag = DynamicFlags[ModelDrawableIndex];
 	}
+
+	Drawables.Sort([](const FLive2DModelDrawable& l, const FLive2DModelDrawable& r)
+	{
+		return (l.RenderOrder < r.RenderOrder);
+	});
 	
 	OnDrawablesUpdated.Broadcast();
 }
@@ -187,10 +192,26 @@ void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const floa
 	{
 		return;
 	}
+
+	const float MinValue = ParameterMinimumValues[ParameterName];
+	const float MaxValue = ParameterMaximumValues[ParameterName];
+
+	if (MinValue > Value)
+	{
+		parameterValues[targetIndex] = MinValue;
+		*ParameterValue = MinValue;
+	}
+	else if (MaxValue < Value)
+	{
+		parameterValues[targetIndex] = MaxValue;
+		*ParameterValue = MaxValue;
+	}
+	else
+	{
+		parameterValues[targetIndex] = Value;
+		*ParameterValue = Value;
+	}
 	
-	//Multiply the difference from reference value by the specified magnification ratio from the parameter.
-	parameterValues[targetIndex] = Value;
-	*ParameterValue = Value;
 	
 	if (bUpdateDrawables)
 	{
@@ -385,4 +406,9 @@ void ULive2DMocModel::InitializeDrawables()
 			//Drawable.MaskLinks = &Drawables[Masks[ModelDrawableIndex][MaskIndex]];
 		}
 	}
+
+	Drawables.Sort([](const FLive2DModelDrawable& l, const FLive2DModelDrawable& r)
+	{
+		return (l.RenderOrder < r.RenderOrder);
+	});
 }
