@@ -17,7 +17,9 @@ class LIVE2D_API ULive2DMocModel : public UObject
 {
 	GENERATED_BODY()
 
-public:	
+public:
+	virtual UWorld* GetWorld() const override;
+	
 	bool Init(const FString& FileName);
 
 	virtual void BeginDestroy() override;
@@ -40,35 +42,37 @@ public:
 
 	FOnDrawablesUpdated OnDrawablesUpdated;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
 	TArray<FLive2DModelDrawable> Drawables;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<UTexture2D*> Textures;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
 	TMap<FString, float> PartOpacities;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
 	TMap<FString, float> ParameterValues;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
 	TMap<FString, float> ParameterDefaultValues;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
 	TMap<FString, float> ParameterMaximumValues;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
 	TMap<FString, float> ParameterMinimumValues;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	UTextureRenderTarget2D* RenderTarget2D = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	FSlateBrush RenderTargetBrush;
 
 private:
 
+	void SetupRenderTarget();
+	void ProcessMasksOfDrawable(const FLive2DModelDrawable& Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo);
 	FVector2D ProcessVertex(FVector2D Vertex, const FLive2DModelCanvasInfo& CanvasInfo);
 	bool InitializeMoc(uint8* Source);
 	bool InitializeModel();

@@ -15,6 +15,8 @@ class LIVE2D_API ULive2DModelMotion : public UObject, public FTickableGameObject
 {
 	GENERATED_BODY()
 public:
+	virtual UWorld* GetWorld() const override;
+	
 	bool Init(const FMotion3FileData& Motion3Data);
 	void RebindDelegates();
 	

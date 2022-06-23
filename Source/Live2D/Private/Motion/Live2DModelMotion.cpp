@@ -1,5 +1,19 @@
 ﻿#include "Live2DModelMotion.h"
 
+UWorld* ULive2DModelMotion::GetWorld() const
+{
+	// This implementation is needed so the blueprint can access worldcontext methods from blueprintFunctionLibraries. The check for for the defaultObject is there because in the editor the object doesn't have an outer.
+	// A more detailed explanation is here: https://answers.unrealengine.com/questions/468741/how-to-make-a-blueprint-derived-from-a-uobject-cla.html
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		return GetOuter()->GetWorld();
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
 bool ULive2DModelMotion::Init(const FMotion3FileData& Motion3Data)
 {
 	Duration = Motion3Data.Meta.Duration;

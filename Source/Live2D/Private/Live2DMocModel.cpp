@@ -11,6 +11,20 @@
 #include "Engine/Canvas.h"
 #include "Kismet/KismetRenderingLibrary.h"
 
+UWorld* ULive2DMocModel::GetWorld() const
+{
+	// This implementation is needed so the blueprint can access worldcontext methods from blueprintFunctionLibraries. The check for for the defaultObject is there because in the editor the object doesn't have an outer.
+	// A more detailed explanation is here: https://answers.unrealengine.com/questions/468741/how-to-make-a-blueprint-derived-from-a-uobject-cla.html
+	if (!HasAnyFlags(RF_ClassDefaultObject))
+	{
+		return GetOuter()->GetWorld();
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
 bool ULive2DMocModel::Init(const FString& FileName)
 {	
 	if (!FPaths::FileExists(FileName))
@@ -118,6 +132,9 @@ void ULive2DMocModel::UpdateDrawables()
 	int DrawableCount = csmGetDrawableCount(Model);
 	const int* VertexCounts = csmGetDrawableVertexCounts(Model);
 	const csmVector2** VertexPositions = csmGetDrawableVertexPositions(Model);
+	const csmVector2** VertexUvs = csmGetDrawableVertexUvs(Model);
+	const int* IndexCounts = csmGetDrawableIndexCounts(Model);
+	const unsigned short** VertexIndices = csmGetDrawableIndices(Model);
 	const float* Opacities = csmGetDrawableOpacities(Model);
 	const int* DrawOrders = csmGetDrawableDrawOrders(Model);
 	const int* RenderOrders = csmGetDrawableRenderOrders(Model);
@@ -129,11 +146,23 @@ void ULive2DMocModel::UpdateDrawables()
 
 		const int32 VertexCount = VertexCounts[ModelDrawableIndex];
 		Drawable.VertexPositions.SetNum(VertexCount);
+		Drawable.VertexUVs.SetNum(VertexCount);
 
 		for (int VertexIndex = 0; VertexIndex < VertexCount; VertexIndex++)
 		{
 			Drawable.VertexPositions[VertexIndex].X = VertexPositions[ModelDrawableIndex][VertexIndex].X;
 			Drawable.VertexPositions[VertexIndex].Y = VertexPositions[ModelDrawableIndex][VertexIndex].Y;
+
+			Drawable.VertexUVs[VertexIndex].X = VertexUvs[ModelDrawableIndex][VertexIndex].X;
+			Drawable.VertexUVs[VertexIndex].Y = VertexUvs[ModelDrawableIndex][VertexIndex].Y;
+		}
+
+		const int32 IndexCount = IndexCounts[ModelDrawableIndex];
+		Drawable.VertexIndices.SetNum(IndexCount);
+
+		for (int32 Index = 0; Index < IndexCount; Index++)
+		{
+			Drawable.VertexIndices[Index] = VertexIndices[ModelDrawableIndex][Index];
 		}
 
 		
@@ -276,22 +305,29 @@ void ULive2DMocModel::SetPartOpacityValue(const FString& ParameterName, const fl
 
 FSlateBrush& ULive2DMocModel::GetTexture2DRenderTarget()
 {
+	if (!RenderTarget2D)
+	{
+		SetupRenderTarget();
+	}
+	
 	auto CanvasInfo = GetModelCanvasInfo();
-	RenderTarget2D = NewObject<UTextureRenderTarget2D>(this);
-	check(RenderTarget2D);
-	RenderTarget2D->RenderTargetFormat = RTF_RGBA16f;
-	RenderTarget2D->ClearColor = FLinearColor::Transparent;
-	RenderTarget2D->bAutoGenerateMips = true;
-	RenderTarget2D->InitAutoFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y);	
-	RenderTarget2D->UpdateResourceImmediate(true);
+	UWorld* World =
+#if WITH_EDITOR
+	GWorld;
+#else
+	GetWorld();
+#endif
 
 	UCanvas* Canvas;
 
 	FDrawToRenderTargetContext Context;
-	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(GWorld, RenderTarget2D, Canvas, CanvasInfo.Size, Context);
+	UKismetRenderingLibrary::ClearRenderTarget2D(World, RenderTarget2D, FLinearColor::Black);
+	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(World, RenderTarget2D, Canvas, CanvasInfo.Size, Context);
 
 	for (const auto& Drawable: Drawables)
 	{
+		ProcessMasksOfDrawable(Drawable, Canvas, CanvasInfo);
+		
 		TArray<FCanvasUVTri> TriangleList;
 
 		for (int32 i = 0; i < Drawable.VertexIndices.Num(); i += 3)
@@ -311,21 +347,113 @@ FSlateBrush& ULive2DMocModel::GetTexture2DRenderTarget()
 			Triangle.V2_UV = Drawable.VertexUVs[VertexIndex2];
 			Triangle.V2_UV.Y = 1 - Triangle.V2_UV.Y;
 			Triangle.V0_Color = FLinearColor::White;
+			Triangle.V0_Color.A = Drawable.Opacity;
+			Triangle.V1_Color = FLinearColor::White;
+			Triangle.V1_Color.A = Drawable.Opacity;
+			Triangle.V2_Color = FLinearColor::White;
+			Triangle.V2_Color.A = Drawable.Opacity;
+
+			TriangleList.Add(Triangle);
+		}
+		
+		FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
+
+		switch (Drawable.BlendMode)
+		{
+		case ELive2dModelBlendMode::ADDITIVE_BLENDING:
+			TriangleItem.BlendMode = SE_BLEND_Additive;
+			break;
+		case ELive2dModelBlendMode::MULTIPLICATIVE_BLENDING:
+			TriangleItem.BlendMode = SE_BLEND_Modulate;
+			break;
+		case ELive2dModelBlendMode::NORMAL_BLENDING:
+		default:
+			TriangleItem.BlendMode = SE_BLEND_Masked;
+			break;
+		}
+
+		Canvas->DrawItem(TriangleItem);
+	}
+
+	
+	return RenderTargetBrush; 
+}
+
+void ULive2DMocModel::SetupRenderTarget()
+{
+	if (RenderTarget2D)
+	{
+		return;
+	}
+	
+	auto CanvasInfo = GetModelCanvasInfo();
+	RenderTarget2D = NewObject<UTextureRenderTarget2D>(this);
+	check(RenderTarget2D);
+	RenderTarget2D->RenderTargetFormat = RTF_RGBA8_SRGB;
+	RenderTarget2D->ClearColor = FLinearColor::Transparent;
+	RenderTarget2D->bAutoGenerateMips = true;
+	RenderTarget2D->InitAutoFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y);	
+	RenderTarget2D->UpdateResourceImmediate(true);
+	
+	RenderTargetBrush.SetResourceObject(RenderTarget2D);
+	RenderTargetBrush.ImageSize = GetModelCanvasInfo().Size;
+	RenderTargetBrush.DrawAs = ESlateBrushDrawType::Image;
+	RenderTargetBrush.TintColor = FLinearColor::White;
+}
+
+void ULive2DMocModel::ProcessMasksOfDrawable(const FLive2DModelDrawable& Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo)
+{
+	if (Drawable.Masks.Num() == 0)
+	{
+		return;
+	}
+
+	uint32 Result = (uint32)SE_BLEND_RGBA_MASK_START;
+	Result += Drawable.Masks.Num() == 1 ? (1 << 0) : 0; // R
+	Result += Drawable.Masks.Num() == 1 ? (1 << 1) : 0; // G
+	Result += Drawable.Masks.Num() == 1 ? (1 << 2) : 0; // B
+	Result += (1 << 3);									// A
+	ESimpleElementBlendMode BlendMode = static_cast<ESimpleElementBlendMode>(Result);
+
+	for (const int32 MaskIndex: Drawable.Masks)
+	{
+		if (MaskIndex == -1)
+		{
+			continue;
+		}
+		
+		const auto& MaskDrawable = Drawables[MaskIndex];
+		TArray<FCanvasUVTri> TriangleList;
+
+		for (int32 i = 0; i < MaskDrawable.VertexIndices.Num(); i += 3)
+		{
+			const int32 VertexIndex0 = MaskDrawable.VertexIndices[i];
+			const int32 VertexIndex1 = MaskDrawable.VertexIndices[i+1];
+			const int32 VertexIndex2 = MaskDrawable.VertexIndices[i+2];
+			
+			FCanvasUVTri Triangle;
+			Triangle.V0_Pos = ProcessVertex(MaskDrawable.VertexPositions[VertexIndex0], CanvasInfo);
+			Triangle.V1_Pos = ProcessVertex(MaskDrawable.VertexPositions[VertexIndex1], CanvasInfo);
+			Triangle.V2_Pos = ProcessVertex(MaskDrawable.VertexPositions[VertexIndex2], CanvasInfo);
+			Triangle.V0_UV = MaskDrawable.VertexUVs[VertexIndex0];
+			Triangle.V0_UV.Y = 1 - Triangle.V0_UV.Y;
+			Triangle.V1_UV = MaskDrawable.VertexUVs[VertexIndex1];
+			Triangle.V1_UV.Y = 1 - Triangle.V1_UV.Y;
+			Triangle.V2_UV = MaskDrawable.VertexUVs[VertexIndex2];
+			Triangle.V2_UV.Y = 1 - Triangle.V2_UV.Y;
+			Triangle.V0_Color = FLinearColor::White;
 			Triangle.V1_Color = FLinearColor::White;
 			Triangle.V2_Color = FLinearColor::White;
 
 			TriangleList.Add(Triangle);
 		}
 		
-		FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
-		TriangleItem.BlendMode = SE_BLEND_Masked;
+		FCanvasTriangleItem TriangleItem(TriangleList, Textures[MaskDrawable.TextureIndex]->GetResource());
+		
+		TriangleItem.BlendMode = BlendMode;
 
 		Canvas->DrawItem(TriangleItem);
 	}
-
-	RenderTargetBrush.SetResourceObject(RenderTarget2D);
-	
-	return RenderTargetBrush; 
 }
 
 FVector2D ULive2DMocModel::ProcessVertex(FVector2D Vertex, const FLive2DModelCanvasInfo& CanvasInfo)
