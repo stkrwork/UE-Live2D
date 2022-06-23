@@ -389,10 +389,18 @@ void ULive2DMocModel::SetupRenderTarget()
 	auto CanvasInfo = GetModelCanvasInfo();
 	RenderTarget2D = NewObject<UTextureRenderTarget2D>(this);
 	check(RenderTarget2D);
-	RenderTarget2D->RenderTargetFormat = RTF_RGBA8_SRGB;
+	RenderTarget2D->TargetGamma = 1.f;
+	RenderTarget2D->RenderTargetFormat = RTF_RGBA8;
 	RenderTarget2D->ClearColor = FLinearColor::Transparent;
-	RenderTarget2D->bAutoGenerateMips = true;
-	RenderTarget2D->InitAutoFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y);	
+	RenderTarget2D->bAutoGenerateMips = false;
+	if (auto* Texture = Textures[0])
+	{
+		RenderTarget2D->InitCustomFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y, Texture->GetPixelFormat(), Texture->bUseLegacyGamma);
+	}
+	else
+	{
+		RenderTarget2D->InitAutoFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y);
+	}
 	RenderTarget2D->UpdateResourceImmediate(true);
 	
 	RenderTargetBrush.SetResourceObject(RenderTarget2D);
