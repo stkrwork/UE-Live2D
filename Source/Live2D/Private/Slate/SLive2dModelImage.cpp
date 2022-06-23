@@ -42,9 +42,7 @@ FVector2D SLive2dModelImage::ComputeDesiredSize(float LayoutScaleMultiplier) con
 		return FVector2D::ZeroVector;
 	}
 
-	FLive2DModelCanvasInfo CanvasInfo = Live2DMocModel->GetModelCanvasInfo();
-
-	return CanvasInfo.Size;
+	return Live2DMocModel->GetModelSize();
 }
 
 FReply SLive2dModelImage::OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)

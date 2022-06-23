@@ -26,7 +26,9 @@ public:
 
 	virtual void Serialize(FArchive& Ar) override;
 
-	FLive2DModelCanvasInfo GetModelCanvasInfo() const;
+	float GetModelWidth() const;
+	float GetModelHeight() const;
+	FVector2D GetModelSize() const;
 
 	void UpdateDrawables();
 
@@ -74,6 +76,7 @@ public:
 
 private:
 
+	FLive2DModelCanvasInfo GetModelCanvasInfoInternal() const;
 	bool GetAffectedParameterIdsByGroupName(const FString& GroupName, const FString& TargetName, TArray<FString>& AffectedIds);
 	void SetParameterValueInternal(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 	void SetPartOpacityValueInternal(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);

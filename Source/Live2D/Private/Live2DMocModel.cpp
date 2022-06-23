@@ -108,21 +108,24 @@ void ULive2DMocModel::Serialize(FArchive& Ar)
 	}
 }
 
-FLive2DModelCanvasInfo ULive2DMocModel::GetModelCanvasInfo() const
+float ULive2DMocModel::GetModelWidth() const
 {
-	FLive2DModelCanvasInfo CanvasInfo;
+	return GetModelSize().X;
 	
-	csmVector2 Size;
-	csmVector2 PivotOrigin;
+}
 
-	csmReadCanvasInfo(Model, &Size, &PivotOrigin, &CanvasInfo.PixelsPerUnit);
+float ULive2DMocModel::GetModelHeight() const
+{
+	return GetModelSize().Y;
+}
 
-	CanvasInfo.Size.X = Size.X;
-	CanvasInfo.Size.Y = Size.Y;
-	CanvasInfo.PivotOrigin.X = PivotOrigin.X;
-	CanvasInfo.PivotOrigin.Y = PivotOrigin.Y;
+FVector2D ULive2DMocModel::GetModelSize() const
+{
+	auto CanvasInfo = GetModelCanvasInfoInternal();
+	FVector2D CanvasCenter(CanvasInfo.PivotOrigin.X/CanvasInfo.PixelsPerUnit,CanvasInfo.PivotOrigin.Y/CanvasInfo.PixelsPerUnit);
+	FVector2D CanvasDimensions(CanvasInfo.Size.X/CanvasInfo.PixelsPerUnit,CanvasInfo.Size.Y/CanvasInfo.PixelsPerUnit);
 
-	return CanvasInfo;
+	return CanvasInfo.Size / CanvasDimensions;
 }
 
 void ULive2DMocModel::UpdateDrawables()
@@ -252,6 +255,23 @@ FSlateBrush& ULive2DMocModel::GetTexture2DRenderTarget()
 	return RenderTargetBrush; 
 }
 
+FLive2DModelCanvasInfo ULive2DMocModel::GetModelCanvasInfoInternal() const
+{
+	FLive2DModelCanvasInfo CanvasInfo;
+	
+	csmVector2 Size;
+	csmVector2 PivotOrigin;
+
+	csmReadCanvasInfo(Model, &Size, &PivotOrigin, &CanvasInfo.PixelsPerUnit);
+
+	CanvasInfo.Size.X = Size.X;
+	CanvasInfo.Size.Y = Size.Y;
+	CanvasInfo.PivotOrigin.X = PivotOrigin.X;
+	CanvasInfo.PivotOrigin.Y = PivotOrigin.Y;
+
+	return CanvasInfo;
+}
+
 bool ULive2DMocModel::GetAffectedParameterIdsByGroupName(const FString& GroupName, const FString& TargetName, TArray<FString>& AffectedIds )
 {
 	AffectedIds.Empty();
@@ -368,7 +388,7 @@ void ULive2DMocModel::SetupRenderTarget()
 		return;
 	}
 	
-	auto CanvasInfo = GetModelCanvasInfo();
+	const FVector2D ModelSize = GetModelSize();
 	RenderTarget2D = NewObject<UTextureRenderTarget2D>(this);
 	check(RenderTarget2D);
 	RenderTarget2D->TargetGamma = 1.f;
@@ -377,23 +397,23 @@ void ULive2DMocModel::SetupRenderTarget()
 	RenderTarget2D->bAutoGenerateMips = false;
 	if (auto* Texture = Textures[0])
 	{
-		RenderTarget2D->InitCustomFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y, Texture->GetPixelFormat(), Texture->bUseLegacyGamma);
+		RenderTarget2D->InitCustomFormat(ModelSize.X, ModelSize.Y, Texture->GetPixelFormat(), Texture->bUseLegacyGamma);
 	}
 	else
 	{
-		RenderTarget2D->InitAutoFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y);
+		RenderTarget2D->InitAutoFormat(ModelSize.X, ModelSize.Y);
 	}
 	RenderTarget2D->UpdateResourceImmediate(true);
 	
 	RenderTargetBrush.SetResourceObject(RenderTarget2D);
-	RenderTargetBrush.ImageSize = GetModelCanvasInfo().Size;
+	RenderTargetBrush.ImageSize = ModelSize;
 	RenderTargetBrush.DrawAs = ESlateBrushDrawType::Image;
 	RenderTargetBrush.TintColor = FLinearColor::White;
 }
 
 void ULive2DMocModel::UpdateRenderTarget()
 {
-	auto CanvasInfo = GetModelCanvasInfo();
+	auto CanvasInfo = GetModelCanvasInfoInternal();
 	UWorld* World =
 #if WITH_EDITOR
 	GWorld;
@@ -404,7 +424,7 @@ void ULive2DMocModel::UpdateRenderTarget()
 	UCanvas* Canvas;
 
 	FDrawToRenderTargetContext Context;
-	UKismetRenderingLibrary::ClearRenderTarget2D(World, RenderTarget2D, FLinearColor::Black);
+	UKismetRenderingLibrary::ClearRenderTarget2D(World, RenderTarget2D, FLinearColor::Transparent);
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(World, RenderTarget2D, Canvas, CanvasInfo.Size, Context);
 
 	for (const auto& Drawable: Drawables)
@@ -522,19 +542,20 @@ FVector2D ULive2DMocModel::ProcessVertex(FVector2D Vertex, const FLive2DModelCan
 	Vertex.X += (CanvasInfo.Size.X * CanvasCenter.X);
 	Vertex.Y += (CanvasInfo.Size.Y * CanvasCenter.Y);
 
-	// TODO move vertices to correct position so nothing gets rendered off-screen
-	if (CanvasCenter.X != 0.5f)
-	{
-		Vertex.X += CanvasInfo.Size.X * (CanvasCenter.X - 0.5f);
-	}
-	
-	// TODO move vertices to correct position so nothing gets rendered off-screen
-	if (CanvasCenter.Y != 0.5f)
-	{
-		Vertex.Y -= CanvasInfo.Size.Y * (CanvasCenter.Y - 0.5f);
-	}
+	// // TODO move vertices to correct position so nothing gets rendered off-screen
+	// if (CanvasCenter.X != 0.5f)
+	// {
+	// 	Vertex.X += CanvasInfo.Size.X * (CanvasCenter.X - 0.5f);
+	// }
+	//
+	// // TODO move vertices to correct position so nothing gets rendered off-screen
+	// if (CanvasCenter.Y != 0.5f)
+	// {
+	// 	Vertex.Y += CanvasInfo.Size.Y * (CanvasCenter.Y - 0.5f);
+	// }
 	
 	Vertex.Y = CanvasInfo.Size.Y - Vertex.Y;
+	Vertex /= CanvasDimensions;
 
 	return Vertex;
 }
