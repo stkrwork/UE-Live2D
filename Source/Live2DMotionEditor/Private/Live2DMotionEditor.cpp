@@ -68,7 +68,7 @@ void FLive2DMotionEditor::InitLive2DMotionEditor(const EToolkitMode::Type Mode, 
 	const FDetailsViewArgs DetailsViewArgs(bIsUpdatable, bIsLockable, true, FDetailsViewArgs::ObjectsUseNameArea, false);
 	MotionDetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	ModelDetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
-	SAssignNew(Live2DModelPreview, SLive2dModelImage, InLive2DMotion->GetModel());
+	SAssignNew(Live2DModelPreview, SImage).Image(&InLive2DMotion->GetModel()->GetTexture2DRenderTarget());
 
 	// Create the layout of our custom asset editor
 	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout("Standalone_Live2DMotionEditor_Layout_v1")
@@ -227,10 +227,15 @@ TSharedRef<SDockTab> FLive2DMotionEditor::SpawnLive2DMotionPreviewTab(const FSpa
 		.Icon(FEditorStyle::GetBrush("GenericEditor.Tabs.Properties"))
 		.Label(LOCTEXT("GenericMotionPreviewTitle", "Motion Preview"))
 		.TabColorScale(GetTabColorScale())
+	[
+		SNew(SScaleBox)
+		.Stretch(EStretch::ScaleToFit)
+		.StretchDirection(EStretchDirection::Both)
 		[
 			// Provide the preview as this tab its content
 			Live2DModelPreview.ToSharedRef()
-		];	
+		]
+	];	
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -187,8 +187,13 @@ TSharedRef<SDockTab> FLive2DModelEditor::SpawnLive2DModelPreviewTab(const FSpawn
 		.Label(LOCTEXT("GenericModelPreviewTitle", "Model Preview"))
 		.TabColorScale(GetTabColorScale())
 		[
-			// Provide the preview as this tab its content
-			Live2DModelPreview.ToSharedRef()
+			SNew(SScaleBox)
+			.Stretch(EStretch::ScaleToFit)
+			.StretchDirection(EStretchDirection::Both)
+			[
+				// Provide the preview as this tab its content
+				Live2DModelPreview.ToSharedRef()
+			]
 		];	
 }
 

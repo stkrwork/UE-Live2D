@@ -34,11 +34,11 @@ UObject* UModel3JsonImportFactory::FactoryCreateText(UClass* InClass, UObject* I
 	
 	ULive2DMocModel* MocModel = NewObject< ULive2DMocModel >(InParent, InName, Flags);
 	
-	if (MocModel->Init(Path / Model3Data.Moc))
+	if (MocModel->Init(Path / Model3Data.FileReferences.Moc, Model3Data.Groups))
 	{
 		{
 			UTextureFactory* Factory = NewObject<UTextureFactory>();
-			for (const auto& TextureName: Model3Data.Textures)
+			for (const auto& TextureName: Model3Data.FileReferences.Textures)
 			{
 				const FName TextureAssetName = *TextureName.Replace(TEXT("/"), TEXT("_")).Replace(TEXT("."), TEXT("_"));
 				UTexture2D* NewTexture = Cast<UTexture2D>(Factory->FactoryCreateFile(UTexture2D::StaticClass(), InParent, TextureAssetName, Flags, Path / TextureName, 0, Warn,bOutOperationCanceled));
@@ -48,7 +48,7 @@ UObject* UModel3JsonImportFactory::FactoryCreateText(UClass* InClass, UObject* I
 
 		{
 			UMotion3JsonImportFactory* Factory = NewObject<UMotion3JsonImportFactory>();
-			for (const auto& MotionData: Model3Data.Motions)
+			for (const auto& MotionData: Model3Data.FileReferences.Motions)
 			{
 				for (const FModel3MotionFileData& MotionFile : MotionData.Value.Motions)
 				{

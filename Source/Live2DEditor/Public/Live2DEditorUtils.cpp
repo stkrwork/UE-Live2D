@@ -16,7 +16,7 @@ FModel3Data Live2DEditorUtils::CreateModel3DataFromJsonString(const FString& Jso
 
 	auto FileReferencesJsonObject = Object->GetObjectField("FileReferences");
 	
-	FJsonObjectConverter::JsonObjectToUStruct<FModel3Data>(FileReferencesJsonObject.ToSharedRef(), &Model3Data, 0, 0);
+	FJsonObjectConverter::JsonObjectToUStruct<FModel3Data>(Object.ToSharedRef(), &Model3Data, 0, 0);
 
 	auto MotionsJsonObject = FileReferencesJsonObject->GetObjectField("Motions");
 
@@ -26,7 +26,7 @@ FModel3Data Live2DEditorUtils::CreateModel3DataFromJsonString(const FString& Jso
 		{
 			FModel3MotionFileData FileData;
 			FileData.File = MotionFileReference->AsObject()->GetStringField("File");
-			Model3Data.Motions[MotionJsonValue.Key].Motions.Add(FileData) ;
+			Model3Data.FileReferences.Motions[MotionJsonValue.Key].Motions.Add(FileData) ;
 		}
 	}
 

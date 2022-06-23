@@ -126,7 +126,7 @@ struct FModel3MotionFileArrayData
 };
 
 USTRUCT(BlueprintType)
-struct FModel3Data
+struct FModel3FileData
 {
 	GENERATED_BODY()
 
@@ -144,6 +144,38 @@ struct FModel3Data
 
 	UPROPERTY()
 	TMap<FString, FModel3MotionFileArrayData> Motions;
+	
+};
+
+USTRUCT(BlueprintType)
+struct FModel3GroupData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString Target;
+
+	UPROPERTY()
+	FString Name;
+
+	UPROPERTY()
+	TArray<FString> Ids;
+	
+};
+
+USTRUCT(BlueprintType)
+struct FModel3Data
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 Version = 0;
+	
+	UPROPERTY()
+	FModel3FileData FileReferences;
+	
+	UPROPERTY()
+	TArray<FModel3GroupData> Groups;
 	
 };
 

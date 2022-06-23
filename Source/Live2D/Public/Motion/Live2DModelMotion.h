@@ -11,7 +11,7 @@
  * 
  */
 UCLASS(Blueprintable, BlueprintType)
-class LIVE2D_API ULive2DModelMotion : public UObject, public FTickableGameObject
+class LIVE2D_API ULive2DModelMotion : public UObject
 {
 	GENERATED_BODY()
 public:
@@ -23,15 +23,14 @@ public:
 	void SetModel(ULive2DMocModel* InModel) { Model = InModel;}
 	ULive2DMocModel* GetModel() const { return Model; }
 
-	virtual void Tick(float Delta) override;
-	virtual TStatId GetStatId() const override;
-	virtual bool IsTickableInEditor() const override { return true; };
-	virtual bool IsTickable() const override { return bIsAnimating; };
-
 	UFUNCTION(CallInEditor)
 	void ToggleMotionInEditor();
 
 protected:
+
+	void ToggleTimer();
+	void Tick();
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ULive2DMocModel* Model;
 	
@@ -54,7 +53,7 @@ protected:
 	float DeltaTime = 0.f;
 	
 	float CurrentTime = 0.f;
-	float TimeSinceLastDelta = 0.f;
 
 	bool bIsAnimating = false;
+	FTimerHandle Timer;
 };

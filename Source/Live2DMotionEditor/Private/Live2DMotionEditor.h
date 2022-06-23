@@ -61,7 +61,7 @@ private:
 	TSharedPtr<class IDetailsView> ModelDetailsView;
 
 	/** Details view */
-	TSharedPtr<class SLive2dModelImage> Live2DModelPreview;
+	TSharedPtr<class SImage> Live2DModelPreview;
 
 	/**	The toolkit name */
 	static const FName ToolkitFName;

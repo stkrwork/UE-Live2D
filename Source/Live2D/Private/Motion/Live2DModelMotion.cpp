@@ -40,21 +40,37 @@ void ULive2DModelMotion::RebindDelegates()
 	}	
 }
 
-void ULive2DModelMotion::Tick(float Delta)
+void ULive2DModelMotion::ToggleMotionInEditor()
 {
-	TimeSinceLastDelta += Delta;
+	DeltaTime = 1.f/FPS;
+	ToggleTimer();
+}
 
-	if (TimeSinceLastDelta < DeltaTime)
-	{
-		return;
-	}
-
-	TimeSinceLastDelta = 0.f;
+void ULive2DModelMotion::ToggleTimer()
+{
+	UWorld* World =
+#if WITH_EDITOR
+	GWorld;
+#else
+	GetWorld();
+#endif
 	
-	CurrentTime = FMath::Min(Duration, CurrentTime + Delta);
+	if (Timer.IsValid())
+	{
+		World->GetTimerManager().ClearTimer(Timer);
+	}
+	else
+	{
+		World->GetTimerManager().SetTimer(Timer, this, &ULive2DModelMotion::Tick, DeltaTime, true);
+	}
+}
+
+void ULive2DModelMotion::Tick()
+{
+	CurrentTime = FMath::Min(Duration, CurrentTime + DeltaTime);
 	for (auto& Curve: Curves)
 	{
-		if (Curve.Target == ECurveTarget::TARGET_PARAMETER)
+		if (Curve.Target == ECurveTarget::TARGET_PARAMETER || Curve.Target == ECurveTarget::TARGET_MODEL)
 		{
 			Curve.UpdateParameter(Model, CurrentTime);
 		}
@@ -68,17 +84,13 @@ void ULive2DModelMotion::Tick(float Delta)
 
 	if (FMath::IsNearlyEqual(CurrentTime, Duration) && bLoop)
 	{
-		CurrentTime = 0.f;
+		if (bLoop)
+		{
+			CurrentTime = 0.f;
+		}
+		else
+		{
+			ToggleTimer();
+		}
 	}
-}
-
-TStatId ULive2DModelMotion::GetStatId() const
-{
-	RETURN_QUICK_DECLARE_CYCLE_STAT(FLive2DModelMotion, STATGROUP_Live2D);
-}
-
-void ULive2DModelMotion::ToggleMotionInEditor()
-{
-	DeltaTime = 1.f/FPS;
-	bIsAnimating = !bIsAnimating;	
 }

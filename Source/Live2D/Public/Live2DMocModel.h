@@ -20,7 +20,7 @@ class LIVE2D_API ULive2DMocModel : public UObject
 public:
 	virtual UWorld* GetWorld() const override;
 	
-	bool Init(const FString& FileName);
+	bool Init(const FString& FileName, const TArray<FModel3GroupData>& InGroups = {});
 
 	virtual void BeginDestroy() override;
 
@@ -49,6 +49,9 @@ public:
 	TArray<UTexture2D*> Textures;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
+	TArray<FModel3GroupData> Groups;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
 	TMap<FString, float> PartOpacities;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
@@ -71,7 +74,11 @@ public:
 
 private:
 
+	bool GetAffectedParameterIdsByGroupName(const FString& GroupName, const FString& TargetName, TArray<FString>& AffectedIds);
+	void SetParameterValueInternal(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
+	void SetPartOpacityValueInternal(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 	void SetupRenderTarget();
+	void UpdateRenderTarget();
 	void ProcessMasksOfDrawable(const FLive2DModelDrawable& Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo);
 	FVector2D ProcessVertex(FVector2D Vertex, const FLive2DModelCanvasInfo& CanvasInfo);
 	bool InitializeMoc(uint8* Source);

@@ -25,7 +25,7 @@ UWorld* ULive2DMocModel::GetWorld() const
 	}
 }
 
-bool ULive2DMocModel::Init(const FString& FileName)
+bool ULive2DMocModel::Init(const FString& FileName, const TArray<FModel3GroupData>& InGroups)
 {	
 	if (!FPaths::FileExists(FileName))
 	{
@@ -74,7 +74,8 @@ bool ULive2DMocModel::Init(const FString& FileName)
 		UE_LOG(LogLive2D, Error, TEXT("Couldn't construct model from MOC3 file %s!"), *FileName);
 		return false;
 	}
-	
+
+	Groups = InGroups;	
 
 	return true;
 }
@@ -179,7 +180,8 @@ void ULive2DMocModel::UpdateDrawables()
 	{
 		return (l.RenderOrder < r.RenderOrder);
 	});
-	
+
+	UpdateRenderTarget();
 	OnDrawablesUpdated.Broadcast();
 }
 
@@ -197,6 +199,75 @@ float ULive2DMocModel::GetParameterValue(const FString& ParameterName)
 }
 
 void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables)
+{
+	TArray<FString> AffectedIds;
+	if (GetAffectedParameterIdsByGroupName(ParameterName, TEXT("Parameter"), AffectedIds))
+	{
+		for (const auto& AffectedId: AffectedIds)
+		{
+			SetParameterValueInternal(AffectedId, Value, bUpdateDrawables);
+		}
+		return;
+	}
+	
+	SetParameterValueInternal(ParameterName, Value, bUpdateDrawables);
+}
+
+float ULive2DMocModel::GetPartOpacityValue(const FString& ParameterName)
+{
+	auto* PartOpacity = PartOpacities.Find(ParameterName);
+
+	if (!PartOpacity)
+	{
+		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::GetPartOpacityValue: Part Opacity Parameter %s doesn't exist on Live 2D Model!"), *ParameterName);
+		return 0.f;
+	}
+
+	return *PartOpacity;
+}
+
+void ULive2DMocModel::SetPartOpacityValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables)
+{
+	TArray<FString> AffectedIds;
+	if (GetAffectedParameterIdsByGroupName(ParameterName, TEXT("PartOpacity"), AffectedIds))
+	{
+		for (const auto& AffectedId: AffectedIds)
+		{
+			SetPartOpacityValueInternal(AffectedId, Value, bUpdateDrawables);
+		}
+		return;
+	}
+	
+	SetPartOpacityValueInternal(ParameterName, Value, bUpdateDrawables);
+}
+
+FSlateBrush& ULive2DMocModel::GetTexture2DRenderTarget()
+{
+	if (!RenderTarget2D)
+	{
+		SetupRenderTarget();
+		UpdateRenderTarget();
+	}
+	
+	return RenderTargetBrush; 
+}
+
+bool ULive2DMocModel::GetAffectedParameterIdsByGroupName(const FString& GroupName, const FString& TargetName, TArray<FString>& AffectedIds )
+{
+	AffectedIds.Empty();
+	for (const auto& Group: Groups)
+	{
+		if (Group.Name == GroupName && Group.Target == TargetName)
+		{
+			AffectedIds = Group.Ids;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void ULive2DMocModel::SetParameterValueInternal(const FString& ParameterName, const float Value, const bool bUpdateDrawables)
 {
 	auto* ParameterValue = ParameterValues.Find(ParameterName);
 
@@ -251,20 +322,7 @@ void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const floa
 	}
 }
 
-float ULive2DMocModel::GetPartOpacityValue(const FString& ParameterName)
-{
-	auto* PartOpacity = PartOpacities.Find(ParameterName);
-
-	if (!PartOpacity)
-	{
-		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::GetPartOpacityValue: Part Opacity Parameter %s doesn't exist on Live 2D Model!"), *ParameterName);
-		return 0.f;
-	}
-
-	return *PartOpacity;
-}
-
-void ULive2DMocModel::SetPartOpacityValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables)
+void ULive2DMocModel::SetPartOpacityValueInternal(const FString& ParameterName, const float Value, const bool bUpdateDrawables)
 {
 	auto* PartOpacity = PartOpacities.Find(ParameterName);
 
@@ -303,13 +361,38 @@ void ULive2DMocModel::SetPartOpacityValue(const FString& ParameterName, const fl
 	}
 }
 
-FSlateBrush& ULive2DMocModel::GetTexture2DRenderTarget()
+void ULive2DMocModel::SetupRenderTarget()
 {
-	if (!RenderTarget2D)
+	if (RenderTarget2D)
 	{
-		SetupRenderTarget();
+		return;
 	}
 	
+	auto CanvasInfo = GetModelCanvasInfo();
+	RenderTarget2D = NewObject<UTextureRenderTarget2D>(this);
+	check(RenderTarget2D);
+	RenderTarget2D->TargetGamma = 1.f;
+	RenderTarget2D->RenderTargetFormat = RTF_RGBA8;
+	RenderTarget2D->ClearColor = FLinearColor::Transparent;
+	RenderTarget2D->bAutoGenerateMips = false;
+	if (auto* Texture = Textures[0])
+	{
+		RenderTarget2D->InitCustomFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y, Texture->GetPixelFormat(), Texture->bUseLegacyGamma);
+	}
+	else
+	{
+		RenderTarget2D->InitAutoFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y);
+	}
+	RenderTarget2D->UpdateResourceImmediate(true);
+	
+	RenderTargetBrush.SetResourceObject(RenderTarget2D);
+	RenderTargetBrush.ImageSize = GetModelCanvasInfo().Size;
+	RenderTargetBrush.DrawAs = ESlateBrushDrawType::Image;
+	RenderTargetBrush.TintColor = FLinearColor::White;
+}
+
+void ULive2DMocModel::UpdateRenderTarget()
+{
 	auto CanvasInfo = GetModelCanvasInfo();
 	UWorld* World =
 #if WITH_EDITOR
@@ -373,40 +456,7 @@ FSlateBrush& ULive2DMocModel::GetTexture2DRenderTarget()
 		}
 
 		Canvas->DrawItem(TriangleItem);
-	}
-
-	
-	return RenderTargetBrush; 
-}
-
-void ULive2DMocModel::SetupRenderTarget()
-{
-	if (RenderTarget2D)
-	{
-		return;
-	}
-	
-	auto CanvasInfo = GetModelCanvasInfo();
-	RenderTarget2D = NewObject<UTextureRenderTarget2D>(this);
-	check(RenderTarget2D);
-	RenderTarget2D->TargetGamma = 1.f;
-	RenderTarget2D->RenderTargetFormat = RTF_RGBA8;
-	RenderTarget2D->ClearColor = FLinearColor::Transparent;
-	RenderTarget2D->bAutoGenerateMips = false;
-	if (auto* Texture = Textures[0])
-	{
-		RenderTarget2D->InitCustomFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y, Texture->GetPixelFormat(), Texture->bUseLegacyGamma);
-	}
-	else
-	{
-		RenderTarget2D->InitAutoFormat(CanvasInfo.Size.X, CanvasInfo.Size.Y);
-	}
-	RenderTarget2D->UpdateResourceImmediate(true);
-	
-	RenderTargetBrush.SetResourceObject(RenderTarget2D);
-	RenderTargetBrush.ImageSize = GetModelCanvasInfo().Size;
-	RenderTargetBrush.DrawAs = ESlateBrushDrawType::Image;
-	RenderTargetBrush.TintColor = FLinearColor::White;
+	}	
 }
 
 void ULive2DMocModel::ProcessMasksOfDrawable(const FLive2DModelDrawable& Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo)
@@ -530,6 +580,17 @@ void ULive2DMocModel::InitializeParameterList()
 		ParameterMinimumValues.Add(ParameterId, ModelParameterMinimumValues[ParameterIndex]);
 		ParameterMaximumValues.Add(ParameterId, ModelParameterMaximumValues[ParameterIndex]);
 	}
+
+	// const FString EyeBlinkParameterName = TEXT("EyeBlink");
+	// ParameterValues.Add(EyeBlinkParameterName, 0.f);
+	// ParameterDefaultValues.Add(EyeBlinkParameterName, 0.f);
+	// ParameterMinimumValues.Add(EyeBlinkParameterName, 0.f);
+	// ParameterMaximumValues.Add(EyeBlinkParameterName, 1.f);
+	// const FString LipSyncParameterName = TEXT("LipSync");
+	// ParameterValues.Add(EyeBlinkParameterName, 0.f);
+	// ParameterDefaultValues.Add(EyeBlinkParameterName, 0.f);
+	// ParameterMinimumValues.Add(EyeBlinkParameterName, 0.f);
+	// ParameterMaximumValues.Add(EyeBlinkParameterName, 1.f);
 }
 
 void ULive2DMocModel::InitializePartOpacities()
