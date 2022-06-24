@@ -47,27 +47,22 @@ void ULive2DModelMotion::ToggleMotionInEditor()
 }
 
 void ULive2DModelMotion::ToggleTimer()
-{
-	UWorld* World =
-#if WITH_EDITOR
-	GWorld;
-#else
-	GetWorld();
-#endif
-	
-	if (Timer.IsValid())
+{	
+	if (Model->IsTicking())
 	{
-		World->GetTimerManager().ClearTimer(Timer);
+		Model->StopTicking();
+		Model->OnModelTick.RemoveDynamic(this, &ULive2DModelMotion::Tick);
 	}
 	else
 	{
-		World->GetTimerManager().SetTimer(Timer, this, &ULive2DModelMotion::Tick, DeltaTime, true);
+		Model->OnModelTick.AddUniqueDynamic(this, &ULive2DModelMotion::Tick);
+		Model->StartTicking(DeltaTime);
 	}
 }
 
-void ULive2DModelMotion::Tick()
+void ULive2DModelMotion::Tick(const float InDeltaTime)
 {
-	CurrentTime = FMath::Min(Duration, CurrentTime + DeltaTime);
+	CurrentTime = FMath::Min(Duration, CurrentTime + InDeltaTime);
 	for (auto& Curve: Curves)
 	{
 		if (Curve.Target == ECurveTarget::TARGET_PARAMETER || Curve.Target == ECurveTarget::TARGET_MODEL)
@@ -79,8 +74,6 @@ void ULive2DModelMotion::Tick()
 			Curve.UpdatePartOpacity(Model, CurrentTime);
 		}
 	}
-
-	Model->UpdateDrawables();
 
 	if (FMath::IsNearlyEqual(CurrentTime, Duration) && bLoop)
 	{

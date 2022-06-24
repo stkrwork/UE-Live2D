@@ -12,6 +12,7 @@
 #include "Factories/Texture2dFactoryNew.h"
 #include "Factories/TextureFactory.h"
 #include "Motion/Live2DModelMotion.h"
+#include "Physics/Live2DModelPhysics.h"
 
 UModel3JsonImportFactory::UModel3JsonImportFactory()
 	:Super()
@@ -65,6 +66,21 @@ UObject* UModel3JsonImportFactory::FactoryCreateText(UClass* InClass, UObject* I
 					}
 
 					NewModelMotion->SetModel(MocModel);
+				}
+			}
+
+			{
+				FString ResultJsonString;
+				const FString MotionFileName = Model3Data.FileReferences.Physics.Replace(TEXT(".json"), TEXT(""));
+				FFileHelper::LoadFileToString(ResultJsonString, *(Path / MotionFileName));
+				FPhysics3FileData Physics3Data = Live2DEditorUtils::CreatePhysics3FileDataFromJsonString(ResultJsonString);
+	
+				ULive2DModelPhysics* PhysicsSystem = MocModel->GetPhysicsSystem();
+
+				if (PhysicsSystem)
+				{
+					PhysicsSystem->Init(Physics3Data);
+					PhysicsSystem->SetModel(MocModel);
 				}
 			}
 		}

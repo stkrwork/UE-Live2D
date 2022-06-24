@@ -240,3 +240,184 @@ struct FMotion3FileData
 	UPROPERTY()
 	TArray<FMotion3CurveData> Curves; 
 };
+
+USTRUCT(BlueprintType)
+struct FPhysics3EffectiveForcesData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FVector2D Gravity;
+	
+	UPROPERTY()
+	FVector2D Wind;
+};
+
+USTRUCT(BlueprintType)
+struct FPhysics3MetaData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 PhysicsSettingCount;
+
+	UPROPERTY()
+	int32 TotalInputCount;
+
+	UPROPERTY()
+	int32 TotalOutputCount;
+
+	UPROPERTY()
+	int32 VertexCount;
+
+	UPROPERTY()
+	FPhysics3EffectiveForcesData EffectiveForces;
+};
+
+USTRUCT(BlueprintType)
+struct FPhysics3PhysicsInOutputPinData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FString Target;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FString Id;
+};
+
+UENUM(BlueprintType)
+enum class EPhysics3SourceType : uint8
+{
+	INVALID,
+	X,
+	Y,
+	Angle
+};
+
+USTRUCT(BlueprintType)
+struct FPhysics3PhysicsInputData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FPhysics3PhysicsInOutputPinData Source;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 Weight;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EPhysics3SourceType Type;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bReflect;
+};
+
+USTRUCT(BlueprintType)
+struct FPhysics3PhysicsOutputData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FPhysics3PhysicsInOutputPinData Destination;
+
+	UPROPERTY()
+	int32 VertexIndex;
+
+	UPROPERTY()
+	float Scale;
+
+	UPROPERTY()
+	int32 Weight;
+
+	UPROPERTY()
+	EPhysics3SourceType Type;
+
+	UPROPERTY()
+	bool bReflect;	
+};
+
+USTRUCT(BlueprintType)
+struct FPhysics3PhysicsVertexData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FVector2D Position;
+
+	UPROPERTY()
+	float Mobility;
+
+	UPROPERTY()
+	float Delay;
+
+	UPROPERTY()
+	float Acceleration;
+
+	UPROPERTY()
+	float Radius;
+};
+
+USTRUCT(BlueprintType)
+struct FPhysics3PhysicsRangeData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float Minimum;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float Default;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float Maximum;
+};
+
+USTRUCT(BlueprintType)
+struct FPhysics3PhysicsNormalizationData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FPhysics3PhysicsRangeData Position;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FPhysics3PhysicsRangeData Angle;
+};
+
+USTRUCT(BlueprintType)
+struct FPhysics3PhysicsSettingsData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString Id;
+
+	UPROPERTY()
+	TArray<FPhysics3PhysicsInputData> Input;
+
+	UPROPERTY()
+	TArray<FPhysics3PhysicsOutputData> Output;
+
+	UPROPERTY()
+	TArray<FPhysics3PhysicsVertexData> Vertices;
+
+	UPROPERTY()
+	FPhysics3PhysicsNormalizationData Normalization;
+	
+};
+
+USTRUCT(BlueprintType)
+struct FPhysics3FileData
+{
+	GENERATED_BODY()
+	
+	UPROPERTY()
+	int32 Version;
+
+	UPROPERTY()
+	FPhysics3MetaData Meta;
+
+	UPROPERTY()
+	TArray<FPhysics3PhysicsSettingsData> PhysicsSettings;
+};

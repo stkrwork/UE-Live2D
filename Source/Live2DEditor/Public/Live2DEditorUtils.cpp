@@ -40,3 +40,11 @@ FMotion3FileData Live2DEditorUtils::CreateMotion3FileDataFromJsonString(const FS
 
 	return Motion3FileData;
 }
+
+FPhysics3FileData Live2DEditorUtils::CreatePhysics3FileDataFromJsonString(const FString& JsonString)
+{
+	FPhysics3FileData Physics3FileData;
+	FJsonObjectConverter::JsonObjectStringToUStruct<FPhysics3FileData>(JsonString, &Physics3FileData, 0, 0);
+
+	return Physics3FileData;
+}

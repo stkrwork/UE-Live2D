@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "Live2DCubismCore.h"
 #include "Live2DStructs.h"
-#include "CoreUObject/Public/UObject/Object.h"
+#include "UObject/Object.h"
 #include "Engine/Texture2D.h"
 #include "Live2DMocModel.generated.h"
 
+class ULive2DModelPhysics;
 /**
  * 
  */
@@ -18,6 +19,7 @@ class LIVE2D_API ULive2DMocModel : public UObject
 	GENERATED_BODY()
 
 public:
+	ULive2DMocModel();
 	virtual UWorld* GetWorld() const override;
 	
 	bool Init(const FString& FileName, const TArray<FModel3GroupData>& InGroups = {});
@@ -30,15 +32,29 @@ public:
 	float GetModelHeight() const;
 	FVector2D GetModelSize() const;
 
+	ULive2DModelPhysics* GetPhysicsSystem();;
+
 	void UpdateDrawables();
 
 	float GetParameterValue(const FString& ParameterName);
+	float GetMinimumParameterValue(const FString& ParameterName);
+	float GetMaximumParameterValue(const FString& ParameterName);
+	float GetDefaultParameterValue(const FString& ParameterName);
 	void SetParameterValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 
 	float GetPartOpacityValue(const FString& ParameterName);
 	void SetPartOpacityValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 
 	FSlateBrush& GetTexture2DRenderTarget();
+
+	bool IsTicking() const { return TickHandle.IsValid(); }
+	void StartTicking(const float TickRate);
+	void StopTicking();
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnModelTick, const float, DeltaTime);
+
+	UPROPERTY(BlueprintAssignable)
+	FOnModelTick OnModelTick;
 
 	DECLARE_MULTICAST_DELEGATE(FOnDrawablesUpdated);
 
@@ -74,7 +90,15 @@ public:
 	UPROPERTY(Transient)
 	FSlateBrush RenderTargetBrush;
 
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	ULive2DModelPhysics* Physics;
 private:
+
+	void OnTick(const float DeltaTime);
+
+	UPROPERTY()
+	FTimerHandle TickHandle;
 
 	FLive2DModelCanvasInfo GetModelCanvasInfoInternal() const;
 	bool GetAffectedParameterIdsByGroupName(const FString& GroupName, const FString& TargetName, TArray<FString>& AffectedIds);

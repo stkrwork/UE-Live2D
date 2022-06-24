@@ -6,10 +6,16 @@
 #include "CanvasItem.h"
 #include "Live2DLogCategory.h"
 #include "HAL/PlatformFilemanager.h"
-#include "Misc/FileHelper.h"
 #include "Live2DCubismCore.h"
 #include "Engine/Canvas.h"
 #include "Kismet/KismetRenderingLibrary.h"
+#include "Live2DModelPhysics.h"
+
+ULive2DMocModel::ULive2DMocModel()
+	: Super()
+{
+	Physics = CreateDefaultSubobject<ULive2DModelPhysics>(TEXT("Physics"));
+}
 
 UWorld* ULive2DMocModel::GetWorld() const
 {
@@ -128,6 +134,11 @@ FVector2D ULive2DMocModel::GetModelSize() const
 	return CanvasInfo.Size / CanvasDimensions;
 }
 
+ULive2DModelPhysics* ULive2DMocModel::GetPhysicsSystem()
+{
+	return Physics;
+}
+
 void ULive2DMocModel::UpdateDrawables()
 {
 	csmResetDrawableDynamicFlags(Model);
@@ -201,6 +212,45 @@ float ULive2DMocModel::GetParameterValue(const FString& ParameterName)
 	return *ParameterValue;
 }
 
+float ULive2DMocModel::GetMinimumParameterValue(const FString& ParameterName)
+{
+	auto* MinimumParameterValue = ParameterMinimumValues.Find(ParameterName);
+
+	if (!MinimumParameterValue)
+	{
+		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::GetMinimumParameterValue: Parameter %s doesn't exist on Live 2D Model!"), *ParameterName);
+		return 0.f;
+	}
+
+	return *MinimumParameterValue;
+}
+
+float ULive2DMocModel::GetMaximumParameterValue(const FString& ParameterName)
+{
+	auto* MaximumParameterValue = ParameterMaximumValues.Find(ParameterName);
+
+	if (!MaximumParameterValue)
+	{
+		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::GetMaximumParameterValue: Parameter %s doesn't exist on Live 2D Model!"), *ParameterName);
+		return 0.f;
+	}
+
+	return *MaximumParameterValue;
+}
+
+float ULive2DMocModel::GetDefaultParameterValue(const FString& ParameterName)
+{
+	auto* DefaultParameterValue = ParameterDefaultValues.Find(ParameterName);
+
+	if (!DefaultParameterValue)
+	{
+		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::GetDefaultParameterValue: Parameter %s doesn't exist on Live 2D Model!"), *ParameterName);
+		return 0.f;
+	}
+
+	return *DefaultParameterValue;
+}
+
 void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables)
 {
 	TArray<FString> AffectedIds;
@@ -253,6 +303,39 @@ FSlateBrush& ULive2DMocModel::GetTexture2DRenderTarget()
 	}
 	
 	return RenderTargetBrush; 
+}
+
+void ULive2DMocModel::StartTicking(const float TickRate)
+{
+	UWorld* World =
+#if WITH_EDITOR
+	GWorld;
+#else
+	GetWorld();
+#endif
+
+	World->GetTimerManager().SetTimer(TickHandle,  FTimerDelegate::CreateUObject(this, &ULive2DMocModel::OnTick, TickRate), TickRate, true);
+}
+
+void ULive2DMocModel::StopTicking()
+{
+	UWorld* World =
+#if WITH_EDITOR
+	GWorld;
+#else
+	GetWorld();
+#endif
+	
+	World->GetTimerManager().ClearTimer(TickHandle);
+}
+
+void ULive2DMocModel::OnTick(const float DeltaTime)
+{
+	OnModelTick.Broadcast(DeltaTime);
+
+	Physics->Evaluate(DeltaTime);
+	
+	UpdateDrawables();
 }
 
 FLive2DModelCanvasInfo ULive2DMocModel::GetModelCanvasInfoInternal() const

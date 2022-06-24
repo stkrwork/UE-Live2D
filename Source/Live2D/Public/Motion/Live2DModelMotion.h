@@ -29,7 +29,9 @@ public:
 protected:
 
 	void ToggleTimer();
-	void Tick();
+
+	UFUNCTION()
+	void Tick(const float InDeltaTime);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ULive2DMocModel* Model;

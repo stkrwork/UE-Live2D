@@ -7,7 +7,8 @@
 class Live2DEditorUtils
 {
 public:
-	static FModel3Data CreateModel3DataFromJsonString(const FString& JsonString); 
-	static FMotion3FileData CreateMotion3FileDataFromJsonString(const FString& JsonString); 
+	static FModel3Data CreateModel3DataFromJsonString(const FString& JsonString);
+	static FMotion3FileData CreateMotion3FileDataFromJsonString(const FString& JsonString);
+	static FPhysics3FileData CreatePhysics3FileDataFromJsonString(const FString& JsonString);
 	
 };
