@@ -425,7 +425,8 @@ void ULive2DMocModel::UpdateRenderTarget()
 
 	FDrawToRenderTargetContext Context;
 	UKismetRenderingLibrary::ClearRenderTarget2D(World, RenderTarget2D, FLinearColor::Transparent);
-	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(World, RenderTarget2D, Canvas, CanvasInfo.Size, Context);
+	FVector2D Size;
+	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(World, RenderTarget2D, Canvas, Size, Context);
 
 	for (const auto& Drawable: Drawables)
 	{
@@ -538,24 +539,23 @@ FVector2D ULive2DMocModel::ProcessVertex(FVector2D Vertex, const FLive2DModelCan
 {
 	FVector2D CanvasCenter(CanvasInfo.PivotOrigin.X/CanvasInfo.PixelsPerUnit,CanvasInfo.PivotOrigin.Y/CanvasInfo.PixelsPerUnit);
 	FVector2D CanvasDimensions(CanvasInfo.Size.X/CanvasInfo.PixelsPerUnit,CanvasInfo.Size.Y/CanvasInfo.PixelsPerUnit);
-	Vertex *= CanvasInfo.Size;
-	Vertex.X += (CanvasInfo.Size.X * CanvasCenter.X);
-	Vertex.Y += (CanvasInfo.Size.Y * CanvasCenter.Y);
-
-	// // TODO move vertices to correct position so nothing gets rendered off-screen
-	// if (CanvasCenter.X != 0.5f)
-	// {
-	// 	Vertex.X += CanvasInfo.Size.X * (CanvasCenter.X - 0.5f);
-	// }
-	//
-	// // TODO move vertices to correct position so nothing gets rendered off-screen
-	// if (CanvasCenter.Y != 0.5f)
-	// {
-	// 	Vertex.Y += CanvasInfo.Size.Y * (CanvasCenter.Y - 0.5f);
-	// }
+	Vertex += (FVector2D(0.5f));
 	
-	Vertex.Y = CanvasInfo.Size.Y - Vertex.Y;
+	if (CanvasCenter.X != 0.5f)
+	{
+		Vertex.X += (CanvasCenter.X - 0.5f);
+	}
+	
+	if (CanvasCenter.Y != 0.5f)
+	{
+		Vertex.Y += (CanvasCenter.Y - 0.5f);
+	}
+	
+	Vertex = FMath::Abs(Vertex);
+	
 	Vertex /= CanvasDimensions;
+	Vertex.Y = 1.f - Vertex.Y;
+	Vertex *= CanvasInfo.Size / CanvasDimensions;
 
 	return Vertex;
 }

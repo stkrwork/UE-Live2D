@@ -50,7 +50,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<UTexture2D*> Textures;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FModel3GroupData> Groups;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)

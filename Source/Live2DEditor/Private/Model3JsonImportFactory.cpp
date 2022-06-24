@@ -42,6 +42,9 @@ UObject* UModel3JsonImportFactory::FactoryCreateText(UClass* InClass, UObject* I
 			{
 				const FName TextureAssetName = *TextureName.Replace(TEXT("/"), TEXT("_")).Replace(TEXT("."), TEXT("_"));
 				UTexture2D* NewTexture = Cast<UTexture2D>(Factory->FactoryCreateFile(UTexture2D::StaticClass(), InParent, TextureAssetName, Flags, Path / TextureName, 0, Warn,bOutOperationCanceled));
+				NewTexture->CompressionSettings = TextureCompressionSettings::TC_EditorIcon;
+				NewTexture->LODGroup = TextureGroup::TEXTUREGROUP_UI;
+				NewTexture->UpdateResource();
 				MocModel->Textures.Add(NewTexture);
 			}
 		}
