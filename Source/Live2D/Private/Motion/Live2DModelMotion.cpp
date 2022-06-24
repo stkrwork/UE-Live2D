@@ -65,7 +65,14 @@ void ULive2DModelMotion::Tick(const float InDeltaTime)
 	CurrentTime = FMath::Min(Duration, CurrentTime + InDeltaTime);
 	for (auto& Curve: Curves)
 	{
-		if (Curve.Target == ECurveTarget::TARGET_PARAMETER || Curve.Target == ECurveTarget::TARGET_MODEL)
+		if (Curve.Target == ECurveTarget::TARGET_MODEL)
+		{
+			if (Curve.Id != TEXT("Opacity"))
+			{
+				Curve.UpdateParameter(Model, CurrentTime);
+			}
+		}
+		if (Curve.Target == ECurveTarget::TARGET_PARAMETER)
 		{
 			Curve.UpdateParameter(Model, CurrentTime);
 		}

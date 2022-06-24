@@ -29,10 +29,9 @@ bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData, const FMo
 		{
 			Segment.PointIndex = 0;
 			FSegmentAnimationPoint FirstPoint;
-			FirstPoint.Time = CurveData.Segments[0];
-			FirstPoint.Value = CurveData.Segments[1];
+			FirstPoint.Time = CurveData.Segments[i++];
+			FirstPoint.Value = CurveData.Segments[i++];
 			Points.Add(FirstPoint);
-			i += 2;
 		}
 		else
 		{
@@ -140,19 +139,20 @@ void FLive2DModelMotionCurve::RebindDelegates(const bool bAreBeziersRestricted)
 void FLive2DModelMotionCurve::UpdateParameter(ULive2DMocModel* Model, const float Time)
 {
 	float Value = 0.f;
-	for (int32 i = 0; i < Segments.Num(); i++)
+	for (int32 i = 0; i < Segments.Num() - 1; i++)
 	{
 		FCurveSegment CurveSegment = Segments[i];
-		auto Point = Points[CurveSegment.PointIndex];
-		if (Point.Time > Time)
+		FCurveSegment NextCurveSegment = Segments[i+1];
+		const FSegmentAnimationPoint NextSegmentPoint = Points[NextCurveSegment.PointIndex];
+		if (NextSegmentPoint.Time > Time)
 		{
 			Value = CurveSegment.EvaluateDelegate.Execute(&Points[CurveSegment.PointIndex], Time);
 			break;
 		}
 
-		if (i == Segments.Num() -1)
+		if (i == Segments.Num() - 2)
 		{
-			Value = Point.Value;
+			Value = NextSegmentPoint.Value;
 		}
 	}
 

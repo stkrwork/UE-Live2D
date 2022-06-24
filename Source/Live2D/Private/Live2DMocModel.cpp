@@ -417,6 +417,11 @@ void ULive2DMocModel::SetParameterValueInternal(const FString& ParameterName, co
 		parameterValues[targetIndex] = Value;
 		*ParameterValue = Value;
 	}
+
+	if (ParameterName == TEXT("ParamArmL"))
+	{
+		UE_LOG(LogLive2D, Warning, TEXT("ParamArmL: %f"), *ParameterValue);
+	}
 	
 	
 	if (bUpdateDrawables)
@@ -684,17 +689,6 @@ void ULive2DMocModel::InitializeParameterList()
 		ParameterMinimumValues.Add(ParameterId, ModelParameterMinimumValues[ParameterIndex]);
 		ParameterMaximumValues.Add(ParameterId, ModelParameterMaximumValues[ParameterIndex]);
 	}
-
-	// const FString EyeBlinkParameterName = TEXT("EyeBlink");
-	// ParameterValues.Add(EyeBlinkParameterName, 0.f);
-	// ParameterDefaultValues.Add(EyeBlinkParameterName, 0.f);
-	// ParameterMinimumValues.Add(EyeBlinkParameterName, 0.f);
-	// ParameterMaximumValues.Add(EyeBlinkParameterName, 1.f);
-	// const FString LipSyncParameterName = TEXT("LipSync");
-	// ParameterValues.Add(EyeBlinkParameterName, 0.f);
-	// ParameterDefaultValues.Add(EyeBlinkParameterName, 0.f);
-	// ParameterMinimumValues.Add(EyeBlinkParameterName, 0.f);
-	// ParameterMaximumValues.Add(EyeBlinkParameterName, 1.f);
 }
 
 void ULive2DMocModel::InitializePartOpacities()
