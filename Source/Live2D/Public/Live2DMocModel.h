@@ -7,6 +7,7 @@
 #include "Live2DStructs.h"
 #include "UObject/Object.h"
 #include "Engine/Texture2D.h"
+#include "Kismet/KismetRenderingLibrary.h"
 #include "Live2DMocModel.generated.h"
 
 class ULive2DModelPhysics;
@@ -88,6 +89,9 @@ public:
 	UTextureRenderTarget2D* RenderTarget2D = nullptr;
 
 	UPROPERTY(Transient)
+	TMap<FString, UTextureRenderTarget2D*> MaskingRenderTargets;
+
+	UPROPERTY(Transient)
 	FSlateBrush RenderTargetBrush;
 
 protected:
@@ -106,7 +110,8 @@ private:
 	void SetPartOpacityValueInternal(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 	void SetupRenderTarget();
 	void UpdateRenderTarget();
-	void ProcessMasksOfDrawable(const FLive2DModelDrawable& Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo);
+	void ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable, UCanvas*& Canvas, const FLive2DModelCanvasInfo& CanvasInfo, FDrawToRenderTargetContext& Context);
+	void ProcessNonMaskedDrawable(const FLive2DModelDrawable& Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo);
 	FVector2D ProcessVertex(FVector2D Vertex, const FLive2DModelCanvasInfo& CanvasInfo);
 	bool InitializeMoc(uint8* Source);
 	bool InitializeModel();
