@@ -145,6 +145,7 @@ void ULive2DMocModel::UpdateDrawables()
 	csmUpdateModel(Model);
 	
 	int DrawableCount = csmGetDrawableCount(Model);
+	const char** Ids = csmGetDrawableIds(Model);
 	const int* VertexCounts = csmGetDrawableVertexCounts(Model);
 	const csmVector2** VertexPositions = csmGetDrawableVertexPositions(Model);
 	const csmVector2** VertexUvs = csmGetDrawableVertexUvs(Model);
@@ -157,29 +158,17 @@ void ULive2DMocModel::UpdateDrawables()
 
 	for (int32 ModelDrawableIndex = 0; ModelDrawableIndex < DrawableCount; ModelDrawableIndex++)
 	{
-		FLive2DModelDrawable& Drawable = Drawables[ModelDrawableIndex];
+		FString DrawableId = Ids[ModelDrawableIndex];
+		FLive2DModelDrawable& Drawable = UnSortedDrawables[ModelDrawableIndex];
 
 		const int32 VertexCount = VertexCounts[ModelDrawableIndex];
 		Drawable.VertexPositions.SetNum(VertexCount);
-		Drawable.VertexUVs.SetNum(VertexCount);
 
 		for (int VertexIndex = 0; VertexIndex < VertexCount; VertexIndex++)
 		{
 			Drawable.VertexPositions[VertexIndex].X = VertexPositions[ModelDrawableIndex][VertexIndex].X;
 			Drawable.VertexPositions[VertexIndex].Y = VertexPositions[ModelDrawableIndex][VertexIndex].Y;
-
-			Drawable.VertexUVs[VertexIndex].X = VertexUvs[ModelDrawableIndex][VertexIndex].X;
-			Drawable.VertexUVs[VertexIndex].Y = VertexUvs[ModelDrawableIndex][VertexIndex].Y;
 		}
-
-		const int32 IndexCount = IndexCounts[ModelDrawableIndex];
-		Drawable.VertexIndices.SetNum(IndexCount);
-
-		for (int32 Index = 0; Index < IndexCount; Index++)
-		{
-			Drawable.VertexIndices[Index] = VertexIndices[ModelDrawableIndex][Index];
-		}
-
 		
 		// Access to other Drawable elements
 		Drawable.DrawOrder = DrawOrders[ModelDrawableIndex];
@@ -190,6 +179,7 @@ void ULive2DMocModel::UpdateDrawables()
 		Drawable.DynamicFlag = DynamicFlags[ModelDrawableIndex];
 	}
 
+	Drawables = UnSortedDrawables;
 	Drawables.Sort([](const FLive2DModelDrawable& l, const FLive2DModelDrawable& r)
 	{
 		return (l.RenderOrder < r.RenderOrder);
@@ -790,7 +780,7 @@ void ULive2DMocModel::InitializePartOpacities()
 void ULive2DMocModel::InitializeDrawables()
 {
 	auto DrawableCount= csmGetDrawableCount(Model);
-	Drawables.SetNum(DrawableCount);
+	UnSortedDrawables.SetNum(DrawableCount);
 	
 	const int* TextureIndices = csmGetDrawableTextureIndices(Model);
 	const csmFlags* ConstantFlags = csmGetDrawableConstantFlags(Model);
@@ -809,7 +799,7 @@ void ULive2DMocModel::InitializeDrawables()
 
 	for (int32 ModelDrawableIndex = 0; ModelDrawableIndex < DrawableCount; ModelDrawableIndex++)
 	{
-		FLive2DModelDrawable& Drawable = Drawables[ModelDrawableIndex];
+		FLive2DModelDrawable& Drawable = UnSortedDrawables[ModelDrawableIndex];
 		Drawable.TextureIndex = TextureIndices[ModelDrawableIndex];
 
 		if ((ConstantFlags[ModelDrawableIndex] & csmBlendAdditive) == csmBlendAdditive)
@@ -881,6 +871,7 @@ void ULive2DMocModel::InitializeDrawables()
 		}
 	}
 
+	Drawables = UnSortedDrawables;
 	Drawables.Sort([](const FLive2DModelDrawable& l, const FLive2DModelDrawable& r)
 	{
 		return (l.RenderOrder < r.RenderOrder);

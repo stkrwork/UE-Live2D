@@ -63,6 +63,7 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
 	TArray<FLive2DModelDrawable> Drawables;
+	TArray<FLive2DModelDrawable> UnSortedDrawables;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<UTexture2D*> Textures;
