@@ -593,7 +593,7 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 		FCanvasTriangleItem TriangleItem(TriangleList, Textures[MaskDrawable.TextureIndex]->GetResource());
 		
 		TriangleItem.BlendMode = BlendMode;
-		TriangleItem.StereoDepth = MaskDrawable.DrawOrder;
+		TriangleItem.StereoDepth = Drawable.DrawOrder;
 
 		MaskingCanvas->DrawItem(TriangleItem);
 	}
