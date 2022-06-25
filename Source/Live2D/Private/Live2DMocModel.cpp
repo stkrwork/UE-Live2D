@@ -593,6 +593,7 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 		FCanvasTriangleItem TriangleItem(TriangleList, Textures[MaskDrawable.TextureIndex]->GetResource());
 		
 		TriangleItem.BlendMode = BlendMode;
+		TriangleItem.StereoDepth = MaskDrawable.DrawOrder;
 
 		MaskingCanvas->DrawItem(TriangleItem);
 	}
@@ -627,6 +628,7 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 
 	FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
 	TriangleItem.BlendMode = SE_BLEND_Masked;
+	TriangleItem.StereoDepth = Drawable.DrawOrder;
 
 	MaskingCanvas->DrawItem(TriangleItem);
 
@@ -649,6 +651,7 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 		break;
 	}
 	
+	TileItem.StereoDepth = Drawable.DrawOrder;
 	Canvas->DrawItem(TileItem);
 }
 
@@ -698,6 +701,7 @@ void ULive2DMocModel::ProcessNonMaskedDrawable(const FLive2DModelDrawable& Drawa
 		break;
 	}
 
+	TriangleItem.StereoDepth = Drawable.DrawOrder;
 	Canvas->DrawItem(TriangleItem);
 }
 
