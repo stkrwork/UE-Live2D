@@ -74,6 +74,11 @@ struct FLive2DModelDrawable
 	{
 		return (DynamicFlag & csmIsVisible) == csmIsVisible;
 	}
+
+	bool IsMasked() const
+	{
+		return Masks.Num() > 0;
+	}
 	
 };
 

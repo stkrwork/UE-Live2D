@@ -1,0 +1,36 @@
+﻿#include "/Engine/Public/Platform.ush"
+#include "/Engine/Private/Common.ush"
+#include "/Engine/Private/ColorUtils.ush"
+
+Texture2D InMainTexture;
+SamplerState InMainTextureSampler;
+Texture2D InMaskTexture;
+SamplerState InMaskTextureSampler;
+half InGamma;
+float2 InMaskSize;
+float InClipRef;
+
+void MainPS(
+	in noperspective float2 InUv : TEXCOORD0,
+	in float4 SvPosition : SV_POSITION,
+	in float4 Color : TEXCOORD1,
+	out float4 OutColor : SV_Target0
+	)
+{
+	float4 BaseColor = InMainTexture.Sample(InMainTextureSampler, InUv);
+	//ReplicateChannel(BaseColor, float4(0, 0,0,0), float4(0,0,0,1));
+	float2 MaskUv = SvPosition.xy / InMaskSize;
+	float4 MaskColor = InMaskTexture.Sample(InMaskTextureSampler, MaskUv);
+	//ReplicateChannel(MaskColor, float4(0, 0,0,0), float4(0,0,0,1));
+	clip(MaskColor.a - InClipRef);
+	OutColor.rgb = BaseColor.rgb * Color.rgb;
+	// if( InGamma != 1.0 )
+	// {
+	// 	// Gamma correct the output color.
+	// 	OutColor.rgb = ApplyGammaCorrection(saturate(OutColor.rgb), 2.2 * InGamma);
+	// }
+
+	OutColor.a = MaskColor.a;
+	
+	OutColor = RETURN_COLOR(OutColor);
+}

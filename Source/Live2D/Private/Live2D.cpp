@@ -53,6 +53,8 @@ void FLive2DModule::StartupModule()
 	{
 		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("ThirdPartyLibraryError", "Failed to load example third party library"));
 	}
+
+	AddShaderSourceDirectoryMapping(TEXT("/Plugin/UELive2D"), FPaths::Combine(BaseDir, TEXT("Shaders")));
 }
 
 void FLive2DModule::ShutdownModule()

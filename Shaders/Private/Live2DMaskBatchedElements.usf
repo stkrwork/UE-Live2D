@@ -1,0 +1,28 @@
+﻿#include "/Engine/Public/Platform.ush"
+#include "/Engine/Private/Common.ush"
+#include "/Engine/Private/ColorUtils.ush"
+
+Texture2D InMaskTexture;
+SamplerState InMaskTextureSampler;
+half InGamma;
+float InClipRef;
+
+void MainPS(
+	in noperspective float2 InUv : TEXCOORD0,
+	in float4 SvPosition : SV_POSITION,
+	in float4 Color : TEXCOORD1,
+	out float4 OutColor : SV_Target0
+	)
+{
+	float4 BaseColor = InMaskTexture.Sample(InMaskTextureSampler, InUv);
+	//clip(BaseColor.a - InClipRef);
+	OutColor = BaseColor * Color;
+
+// #if LIVE_2D_INVERTED_MASK
+// 	OutColor = (1.0 - BaseColor) * Color;
+// #else
+// 	OutColor = BaseColor * Color;
+// #endif
+
+	OutColor = RETURN_COLOR(OutColor);
+}

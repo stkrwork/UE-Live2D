@@ -4,6 +4,7 @@
 #include "Live2DMocModel.h"
 
 #include "CanvasItem.h"
+#include "Live2DBatchedElements.h"
 #include "Live2DLogCategory.h"
 #include "HAL/PlatformFilemanager.h"
 #include "Live2DCubismCore.h"
@@ -500,7 +501,8 @@ void ULive2DMocModel::UpdateRenderTarget()
 			continue;
 		}
 
-		if (Drawable.Masks.Num() > 0)
+
+		if (Drawable.IsMasked())
 		{
 			ProcessMaskedDrawable(Drawable, Canvas, CanvasInfo, Context);
 		}
@@ -513,7 +515,7 @@ void ULive2DMocModel::UpdateRenderTarget()
 
 void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable, UCanvas*& Canvas, const FLive2DModelCanvasInfo& CanvasInfo, FDrawToRenderTargetContext& Context)
 {
-	if (Drawable.Masks.Num() == 0)
+	if (!Drawable.IsMasked())
 	{
 		return;
 	}
@@ -582,14 +584,61 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 		
 		FCanvasTriangleItem TriangleItem(TriangleList, Textures[MaskDrawable.TextureIndex]->GetResource());
 		
-		TriangleItem.BlendMode = BlendMode;
-		TriangleItem.StereoDepth = Drawable.DrawOrder;
+		TriangleItem.BlendMode = SE_BLEND_Masked;
+		//TriangleItem.StereoDepth = Drawable.DrawOrder;
+
+		if (MaskDrawable.bIsInvertedMask)
+		{
+			TriangleItem.BatchedElementParameters = new FLive2DInvertedMaskBatchedElements();
+		}
+		else
+		{
+			TriangleItem.BatchedElementParameters = new FLive2DMaskBatchedElements();
+		}
 
 		MaskingCanvas->DrawItem(TriangleItem);
 	}
 
-	TArray<FCanvasUVTri> TriangleList;
+	// TArray<FCanvasUVTri> TriangleList;
+	//
+	// for (int32 i = 0; i < Drawable.VertexIndices.Num(); i += 3)
+	// {
+	// 	const int32 VertexIndex0 = Drawable.VertexIndices[i];
+	// 	const int32 VertexIndex1 = Drawable.VertexIndices[i+1];
+	// 	const int32 VertexIndex2 = Drawable.VertexIndices[i+2];
+	// 		
+	// 	FCanvasUVTri Triangle;
+	// 	Triangle.V0_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex0], CanvasInfo);
+	// 	Triangle.V1_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex1], CanvasInfo);
+	// 	Triangle.V2_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex2], CanvasInfo);
+	// 	Triangle.V0_UV = Drawable.VertexUVs[VertexIndex0];
+	// 	Triangle.V0_UV.Y = 1 - Triangle.V0_UV.Y;
+	// 	Triangle.V1_UV = Drawable.VertexUVs[VertexIndex1];
+	// 	Triangle.V1_UV.Y = 1 - Triangle.V1_UV.Y;
+	// 	Triangle.V2_UV = Drawable.VertexUVs[VertexIndex2];
+	// 	Triangle.V2_UV.Y = 1 - Triangle.V2_UV.Y;
+	// 	Triangle.V0_Color = FLinearColor::White;
+	// 	Triangle.V0_Color.A = Drawable.Opacity;
+	// 	Triangle.V1_Color = FLinearColor::White;
+	// 	Triangle.V1_Color.A = Drawable.Opacity;
+	// 	Triangle.V2_Color = FLinearColor::White;
+	// 	Triangle.V2_Color.A = Drawable.Opacity;
+	//
+	// 	TriangleList.Add(Triangle);
+	// }
+	//
+	// FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
+	// TriangleItem.BlendMode = SE_BLEND_Masked;
+	// //TriangleItem.StereoDepth = Drawable.DrawOrder;
+	// TriangleItem.BatchedElementParameters = new FLive2DMaskedBatchedElements(RenderTarget);
+	//
+	// MaskingCanvas->DrawItem(TriangleItem);
 
+	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(World, MaskingContext);
+	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(World, RenderTarget2D, Canvas,Size, Context);
+
+	TArray<FCanvasUVTri> TriangleList;
+	
 	for (int32 i = 0; i < Drawable.VertexIndices.Num(); i += 3)
 	{
 		const int32 VertexIndex0 = Drawable.VertexIndices[i];
@@ -612,37 +661,35 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 		Triangle.V1_Color.A = Drawable.Opacity;
 		Triangle.V2_Color = FLinearColor::White;
 		Triangle.V2_Color.A = Drawable.Opacity;
-
+	
 		TriangleList.Add(Triangle);
 	}
-
+	
 	FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
 	TriangleItem.BlendMode = SE_BLEND_Masked;
 	TriangleItem.StereoDepth = Drawable.DrawOrder;
-
-	MaskingCanvas->DrawItem(TriangleItem);
-
-	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(World, MaskingContext);
-	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(World, RenderTarget2D, Canvas,Size, Context);
+	TriangleItem.BatchedElementParameters = new FLive2DMaskedBatchedElements(RenderTarget);
 	
-	FCanvasTileItem TileItem(FVector2D::ZeroVector, RenderTarget->GetResource(), FLinearColor::White);
-
-	switch (Drawable.BlendMode)
-	{
-	case ELive2dModelBlendMode::ADDITIVE_BLENDING:
-		TileItem.BlendMode = SE_BLEND_Additive;
-		break;
-	case ELive2dModelBlendMode::MULTIPLICATIVE_BLENDING:
-		TileItem.BlendMode = SE_BLEND_Modulate;
-		break;
-	case ELive2dModelBlendMode::NORMAL_BLENDING:
-	default:
-		TileItem.BlendMode = SE_BLEND_Masked;
-		break;
-	}
+	Canvas->DrawItem(TriangleItem);
 	
-	TileItem.StereoDepth = Drawable.DrawOrder;
-	Canvas->DrawItem(TileItem);
+	// FCanvasTileItem TileItem(FVector2D::ZeroVector, RenderTarget->GetResource(), FLinearColor::White);
+	//
+	// switch (Drawable.BlendMode)
+	// {
+	// case ELive2dModelBlendMode::ADDITIVE_BLENDING:
+	// 	TileItem.BlendMode = SE_BLEND_Additive;
+	// 	break;
+	// case ELive2dModelBlendMode::MULTIPLICATIVE_BLENDING:
+	// 	TileItem.BlendMode = SE_BLEND_Modulate;
+	// 	break;
+	// case ELive2dModelBlendMode::NORMAL_BLENDING:
+	// default:
+	// 	TileItem.BlendMode = SE_BLEND_Masked;
+	// 	break;
+	// }
+	//
+	// TileItem.StereoDepth = Drawable.DrawOrder;
+	// Canvas->DrawItem(TileItem);
 }
 
 void ULive2DMocModel::ProcessNonMaskedDrawable(const FLive2DModelDrawable& Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo)

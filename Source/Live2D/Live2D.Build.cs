@@ -27,7 +27,9 @@ public class Live2D : ModuleRules
 				"Projects", 
 				"Engine",
 				"SlateCore",
-				"Slate"
+				"Slate",
+				"RenderCore",
+				"RHI"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
