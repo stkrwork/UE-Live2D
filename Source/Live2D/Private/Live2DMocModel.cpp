@@ -554,7 +554,7 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 			continue;
 		}
 		
-		const auto& MaskDrawable = Drawables[MaskIndex];
+		const auto& MaskDrawable = UnSortedDrawables[MaskIndex];
 		TArray<FCanvasUVTri> TriangleList;
 
 		for (int32 i = 0; i < MaskDrawable.VertexIndices.Num(); i += 3)
