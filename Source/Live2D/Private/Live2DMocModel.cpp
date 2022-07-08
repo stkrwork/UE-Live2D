@@ -501,6 +501,10 @@ void ULive2DMocModel::UpdateRenderTarget()
 			continue;
 		}
 
+		// if (!Drawable.IsMasked())
+		// {
+		// 	continue;
+		// }
 
 		if (Drawable.IsMasked())
 		{
@@ -666,9 +670,9 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 	}
 	
 	FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
-	TriangleItem.BlendMode = SE_BLEND_Masked;
+	TriangleItem.BlendMode = SE_BLEND_Opaque;
 	TriangleItem.StereoDepth = Drawable.DrawOrder;
-	TriangleItem.BatchedElementParameters = new FLive2DMaskedBatchedElements(RenderTarget);
+	TriangleItem.BatchedElementParameters = new FLive2DMaskedBatchedElements(RenderTarget, Textures[Drawable.TextureIndex]);
 	
 	Canvas->DrawItem(TriangleItem);
 	

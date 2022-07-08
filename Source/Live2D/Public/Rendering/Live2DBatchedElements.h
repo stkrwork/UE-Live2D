@@ -7,8 +7,9 @@ class FLive2DMaskedBatchedElements : public FBatchedElementParameters
 public:
 	typedef TFunction<void(FRHITexture*&, FRHISamplerState*&)> FGetTextureAndSamplerDelegate;
 
-	FLive2DMaskedBatchedElements(UTextureRenderTarget2D* InMaskRenderTarget)
+	FLive2DMaskedBatchedElements(UTextureRenderTarget2D* InMaskRenderTarget, UTexture2D* InTexture2D)
 		: MaskRenderTarget(InMaskRenderTarget)
+		, Texture2D(InTexture2D)
 	{}
 
 	/** Binds vertex and pixel shaders for this element */
@@ -16,6 +17,7 @@ public:
 
 private:
 	UTextureRenderTarget2D* MaskRenderTarget = nullptr;
+	UTexture2D* Texture2D = nullptr;
 };
 
 

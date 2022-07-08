@@ -22,7 +22,7 @@ void MainPS(
 	float2 MaskUv = SvPosition.xy / InMaskSize;
 	float4 MaskColor = InMaskTexture.Sample(InMaskTextureSampler, MaskUv);
 	//ReplicateChannel(MaskColor, float4(0, 0,0,0), float4(0,0,0,1));
-	clip(MaskColor.a - InClipRef);
+	clip(BaseColor.a - MaskColor.a);
 	OutColor.rgb = BaseColor.rgb * Color.rgb;
 	// if( InGamma != 1.0 )
 	// {

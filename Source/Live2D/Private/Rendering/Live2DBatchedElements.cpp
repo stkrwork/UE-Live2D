@@ -104,15 +104,15 @@ void FLive2DMaskedBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGra
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 	GraphicsPSOInit.PrimitiveType = PT_TriangleList;
-	GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
+	GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_Zero, BF_One>::GetRHI();
 	
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, EApplyRendertargetOption::ForceApply);
 	
 	VertexShader->SetParameters(RHICmdList, InTransform);
 	
 	FLive2DMaskedShader::FParameters PassParameters;
-	PassParameters.InMainTexture = Texture->TextureRHI;
-	PassParameters.InMainTextureSampler = Texture->SamplerStateRHI;
+	PassParameters.InMainTexture = Texture2D->GetResource()->TextureRHI;
+	PassParameters.InMainTextureSampler = Texture2D->GetResource()->SamplerStateRHI;
 	PassParameters.InMaskTexture = MaskRenderTarget->GetResource()->TextureRHI;
 	PassParameters.InMaskTextureSampler = MaskRenderTarget->GetResource()->SamplerStateRHI;
 	PassParameters.InMaskSize = FVector2D(MaskRenderTarget->SizeX, MaskRenderTarget->SizeY);
