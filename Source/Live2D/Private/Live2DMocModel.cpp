@@ -180,7 +180,6 @@ void ULive2DMocModel::UpdateDrawables()
 		Drawable.DynamicFlag = DynamicFlags[ModelDrawableIndex];
 	}
 
-	Drawables = UnSortedDrawables;
 	Drawables.Sort([](const FLive2DModelDrawable& l, const FLive2DModelDrawable& r)
 	{
 		return (l.RenderOrder < r.RenderOrder);
@@ -496,7 +495,7 @@ void ULive2DMocModel::UpdateRenderTarget()
 
 	for (const auto& Drawable: Drawables)
 	{
-		if (!Drawable.IsVisible())
+		if (!Drawable->IsVisible())
 		{
 			continue;
 		}
@@ -506,7 +505,7 @@ void ULive2DMocModel::UpdateRenderTarget()
 		// 	continue;
 		// }
 
-		if (Drawable.IsMasked())
+		if (Drawable->IsMasked())
 		{
 			ProcessMaskedDrawable(Drawable, Canvas, CanvasInfo, Context);
 		}
@@ -517,18 +516,18 @@ void ULive2DMocModel::UpdateRenderTarget()
 	}	
 }
 
-void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable, UCanvas*& Canvas, const FLive2DModelCanvasInfo& CanvasInfo, FDrawToRenderTargetContext& Context)
+void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable* Drawable, UCanvas*& Canvas, const FLive2DModelCanvasInfo& CanvasInfo, FDrawToRenderTargetContext& Context)
 {
-	if (!Drawable.IsMasked())
+	if (!Drawable->IsMasked())
 	{
 		return;
 	}
 
-	auto* RenderTarget = MaskingRenderTargets[Drawable.ID];
+	auto* RenderTarget = MaskingRenderTargets[Drawable->ID];
 
 	if (!RenderTarget)
 	{
-		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::ProcessMaskedDrawable: Masking Render Target for Drawable Id %s doesn't exist!"), *Drawable.ID);
+		UE_LOG(LogLive2D, Error, TEXT("ULive2DMocModel::ProcessMaskedDrawable: Masking Render Target for Drawable Id %s doesn't exist!"), *Drawable->ID);
 		return;
 	}
 	
@@ -547,13 +546,13 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(World, RenderTarget, MaskingCanvas,Size, MaskingContext);
 
 	uint32 Result = static_cast<uint32>(SE_BLEND_RGBA_MASK_START);
-	Result += Drawable.Masks.Num() == 1 ? (1 << 0) : 0; // R
-	Result += Drawable.Masks.Num() == 1 ? (1 << 1) : 0; // G
-	Result += Drawable.Masks.Num() == 1 ? (1 << 2) : 0; // B
+	Result += Drawable->Masks.Num() == 1 ? (1 << 0) : 0; // R
+	Result += Drawable->Masks.Num() == 1 ? (1 << 1) : 0; // G
+	Result += Drawable->Masks.Num() == 1 ? (1 << 2) : 0; // B
 	Result += (1 << 3);									// A
 	ESimpleElementBlendMode BlendMode = static_cast<ESimpleElementBlendMode>(Result);
 
-	for (const int32 MaskIndex: Drawable.Masks)
+	for (const int32 MaskIndex: Drawable->Masks)
 	{
 		if (MaskIndex == -1)
 		{
@@ -589,7 +588,7 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 		FCanvasTriangleItem TriangleItem(TriangleList, Textures[MaskDrawable.TextureIndex]->GetResource());
 		
 		TriangleItem.BlendMode = SE_BLEND_Masked;
-		//TriangleItem.StereoDepth = Drawable.DrawOrder;
+		//TriangleItem.StereoDepth = Drawable->DrawOrder;
 
 		// if (MaskDrawable.bIsInvertedMask)
 		// {
@@ -605,36 +604,36 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 
 	// TArray<FCanvasUVTri> TriangleList;
 	//
-	// for (int32 i = 0; i < Drawable.VertexIndices.Num(); i += 3)
+	// for (int32 i = 0; i < Drawable->VertexIndices.Num(); i += 3)
 	// {
-	// 	const int32 VertexIndex0 = Drawable.VertexIndices[i];
-	// 	const int32 VertexIndex1 = Drawable.VertexIndices[i+1];
-	// 	const int32 VertexIndex2 = Drawable.VertexIndices[i+2];
+	// 	const int32 VertexIndex0 = Drawable->VertexIndices[i];
+	// 	const int32 VertexIndex1 = Drawable->VertexIndices[i+1];
+	// 	const int32 VertexIndex2 = Drawable->VertexIndices[i+2];
 	// 		
 	// 	FCanvasUVTri Triangle;
-	// 	Triangle.V0_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex0], CanvasInfo);
-	// 	Triangle.V1_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex1], CanvasInfo);
-	// 	Triangle.V2_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex2], CanvasInfo);
-	// 	Triangle.V0_UV = Drawable.VertexUVs[VertexIndex0];
+	// 	Triangle.V0_Pos = ProcessVertex(Drawable->VertexPositions[VertexIndex0], CanvasInfo);
+	// 	Triangle.V1_Pos = ProcessVertex(Drawable->VertexPositions[VertexIndex1], CanvasInfo);
+	// 	Triangle.V2_Pos = ProcessVertex(Drawable->VertexPositions[VertexIndex2], CanvasInfo);
+	// 	Triangle.V0_UV = Drawable->VertexUVs[VertexIndex0];
 	// 	Triangle.V0_UV.Y = 1 - Triangle.V0_UV.Y;
-	// 	Triangle.V1_UV = Drawable.VertexUVs[VertexIndex1];
+	// 	Triangle.V1_UV = Drawable->VertexUVs[VertexIndex1];
 	// 	Triangle.V1_UV.Y = 1 - Triangle.V1_UV.Y;
-	// 	Triangle.V2_UV = Drawable.VertexUVs[VertexIndex2];
+	// 	Triangle.V2_UV = Drawable->VertexUVs[VertexIndex2];
 	// 	Triangle.V2_UV.Y = 1 - Triangle.V2_UV.Y;
 	// 	Triangle.V0_Color = FLinearColor::White;
-	// 	Triangle.V0_Color.A = Drawable.Opacity;
+	// 	Triangle.V0_Color.A = Drawable->Opacity;
 	// 	Triangle.V1_Color = FLinearColor::White;
-	// 	Triangle.V1_Color.A = Drawable.Opacity;
+	// 	Triangle.V1_Color.A = Drawable->Opacity;
 	// 	Triangle.V2_Color = FLinearColor::White;
-	// 	Triangle.V2_Color.A = Drawable.Opacity;
+	// 	Triangle.V2_Color.A = Drawable->Opacity;
 	//
 	// 	TriangleList.Add(Triangle);
 	// }
 	//
-	// FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
+	// FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable->TextureIndex]->GetResource());
 	// TriangleItem.BlendMode = SE_BLEND_Masked;
-	// //TriangleItem.StereoDepth = Drawable.DrawOrder;
-	// TriangleItem.BatchedElementParameters = new FLive2DMasked2BatchedElements(Textures[Drawable.TextureIndex]);
+	// //TriangleItem.StereoDepth = Drawable->DrawOrder;
+	// TriangleItem.BatchedElementParameters = new FLive2DMasked2BatchedElements(Textures[Drawable->TextureIndex]);
 	//
 	// MaskingCanvas->DrawItem(TriangleItem);
 
@@ -643,42 +642,42 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 
 	TArray<FCanvasUVTri> TriangleList;
 	
-	for (int32 i = 0; i < Drawable.VertexIndices.Num(); i += 3)
+	for (int32 i = 0; i < Drawable->VertexIndices.Num(); i += 3)
 	{
-		const int32 VertexIndex0 = Drawable.VertexIndices[i];
-		const int32 VertexIndex1 = Drawable.VertexIndices[i+1];
-		const int32 VertexIndex2 = Drawable.VertexIndices[i+2];
+		const int32 VertexIndex0 = Drawable->VertexIndices[i];
+		const int32 VertexIndex1 = Drawable->VertexIndices[i+1];
+		const int32 VertexIndex2 = Drawable->VertexIndices[i+2];
 			
 		FCanvasUVTri Triangle;
-		Triangle.V0_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex0], CanvasInfo);
-		Triangle.V1_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex1], CanvasInfo);
-		Triangle.V2_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex2], CanvasInfo);
-		Triangle.V0_UV = Drawable.VertexUVs[VertexIndex0];
+		Triangle.V0_Pos = ProcessVertex(Drawable->VertexPositions[VertexIndex0], CanvasInfo);
+		Triangle.V1_Pos = ProcessVertex(Drawable->VertexPositions[VertexIndex1], CanvasInfo);
+		Triangle.V2_Pos = ProcessVertex(Drawable->VertexPositions[VertexIndex2], CanvasInfo);
+		Triangle.V0_UV = Drawable->VertexUVs[VertexIndex0];
 		Triangle.V0_UV.Y = 1 - Triangle.V0_UV.Y;
-		Triangle.V1_UV = Drawable.VertexUVs[VertexIndex1];
+		Triangle.V1_UV = Drawable->VertexUVs[VertexIndex1];
 		Triangle.V1_UV.Y = 1 - Triangle.V1_UV.Y;
-		Triangle.V2_UV = Drawable.VertexUVs[VertexIndex2];
+		Triangle.V2_UV = Drawable->VertexUVs[VertexIndex2];
 		Triangle.V2_UV.Y = 1 - Triangle.V2_UV.Y;
 		Triangle.V0_Color = FLinearColor::White;
-		Triangle.V0_Color.A = Drawable.Opacity;
+		Triangle.V0_Color.A = Drawable->Opacity;
 		Triangle.V1_Color = FLinearColor::White;
-		Triangle.V1_Color.A = Drawable.Opacity;
+		Triangle.V1_Color.A = Drawable->Opacity;
 		Triangle.V2_Color = FLinearColor::White;
-		Triangle.V2_Color.A = Drawable.Opacity;
+		Triangle.V2_Color.A = Drawable->Opacity;
 	
 		TriangleList.Add(Triangle);
 	}
 	
-	FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
+	FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable->TextureIndex]->GetResource());
 	TriangleItem.BlendMode = SE_BLEND_Opaque;
-	TriangleItem.StereoDepth = Drawable.DrawOrder;
-	TriangleItem.BatchedElementParameters = new FLive2DMaskedBatchedElements(RenderTarget, Textures[Drawable.TextureIndex]);
+	TriangleItem.StereoDepth = Drawable->DrawOrder;
+	TriangleItem.BatchedElementParameters = new FLive2DMaskedBatchedElements(RenderTarget, Textures[Drawable->TextureIndex]);
 	
 	Canvas->DrawItem(TriangleItem);
 	
 	// FCanvasTileItem TileItem(FVector2D::ZeroVector, RenderTarget->GetResource(), FLinearColor::White);
 	//
-	// switch (Drawable.BlendMode)
+	// switch (Drawable->BlendMode)
 	// {
 	// case ELive2dModelBlendMode::ADDITIVE_BLENDING:
 	// 	TileItem.BlendMode = SE_BLEND_Additive;
@@ -692,43 +691,43 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 	// 	break;
 	// }
 	//
-	// TileItem.StereoDepth = Drawable.DrawOrder;
+	// TileItem.StereoDepth = Drawable->DrawOrder;
 	// Canvas->DrawItem(TileItem);
 }
 
-void ULive2DMocModel::ProcessNonMaskedDrawable(const FLive2DModelDrawable& Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo)
+void ULive2DMocModel::ProcessNonMaskedDrawable(const FLive2DModelDrawable* Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo)
 {
 	TArray<FCanvasUVTri> TriangleList;
 
-	for (int32 i = 0; i < Drawable.VertexIndices.Num(); i += 3)
+	for (int32 i = 0; i < Drawable->VertexIndices.Num(); i += 3)
 	{
-		const int32 VertexIndex0 = Drawable.VertexIndices[i];
-		const int32 VertexIndex1 = Drawable.VertexIndices[i+1];
-		const int32 VertexIndex2 = Drawable.VertexIndices[i+2];
+		const int32 VertexIndex0 = Drawable->VertexIndices[i];
+		const int32 VertexIndex1 = Drawable->VertexIndices[i+1];
+		const int32 VertexIndex2 = Drawable->VertexIndices[i+2];
 			
 		FCanvasUVTri Triangle;
-		Triangle.V0_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex0], CanvasInfo);
-		Triangle.V1_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex1], CanvasInfo);
-		Triangle.V2_Pos = ProcessVertex(Drawable.VertexPositions[VertexIndex2], CanvasInfo);
-		Triangle.V0_UV = Drawable.VertexUVs[VertexIndex0];
+		Triangle.V0_Pos = ProcessVertex(Drawable->VertexPositions[VertexIndex0], CanvasInfo);
+		Triangle.V1_Pos = ProcessVertex(Drawable->VertexPositions[VertexIndex1], CanvasInfo);
+		Triangle.V2_Pos = ProcessVertex(Drawable->VertexPositions[VertexIndex2], CanvasInfo);
+		Triangle.V0_UV = Drawable->VertexUVs[VertexIndex0];
 		Triangle.V0_UV.Y = 1 - Triangle.V0_UV.Y;
-		Triangle.V1_UV = Drawable.VertexUVs[VertexIndex1];
+		Triangle.V1_UV = Drawable->VertexUVs[VertexIndex1];
 		Triangle.V1_UV.Y = 1 - Triangle.V1_UV.Y;
-		Triangle.V2_UV = Drawable.VertexUVs[VertexIndex2];
+		Triangle.V2_UV = Drawable->VertexUVs[VertexIndex2];
 		Triangle.V2_UV.Y = 1 - Triangle.V2_UV.Y;
 		Triangle.V0_Color = FLinearColor::White;
-		Triangle.V0_Color.A = Drawable.Opacity;
+		Triangle.V0_Color.A = Drawable->Opacity;
 		Triangle.V1_Color = FLinearColor::White;
-		Triangle.V1_Color.A = Drawable.Opacity;
+		Triangle.V1_Color.A = Drawable->Opacity;
 		Triangle.V2_Color = FLinearColor::White;
-		Triangle.V2_Color.A = Drawable.Opacity;
+		Triangle.V2_Color.A = Drawable->Opacity;
 
 		TriangleList.Add(Triangle);
 	}
 		
-	FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
+	FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable->TextureIndex]->GetResource());
 
-	switch (Drawable.BlendMode)
+	switch (Drawable->BlendMode)
 	{
 	case ELive2dModelBlendMode::ADDITIVE_BLENDING:
 		TriangleItem.BlendMode = SE_BLEND_Additive;
@@ -742,7 +741,7 @@ void ULive2DMocModel::ProcessNonMaskedDrawable(const FLive2DModelDrawable& Drawa
 		break;
 	}
 
-	TriangleItem.StereoDepth = Drawable.DrawOrder;
+	TriangleItem.StereoDepth = Drawable->DrawOrder;
 	Canvas->DrawItem(TriangleItem);
 }
 
@@ -920,9 +919,10 @@ void ULive2DMocModel::InitializeDrawables()
 			RenderTarget->UpdateResourceImmediate(true);
 			MaskingRenderTargets.Add(Drawable.ID, RenderTarget);
 		}
-	}
 
-	Drawables = UnSortedDrawables;
+		Drawables.Add(&Drawable);
+	}
+	
 	Drawables.Sort([](const FLive2DModelDrawable& l, const FLive2DModelDrawable& r)
 	{
 		return (l.RenderOrder < r.RenderOrder);

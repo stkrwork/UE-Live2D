@@ -61,8 +61,9 @@ public:
 
 	FOnDrawablesUpdated OnDrawablesUpdated;
 	
+	TArray<FLive2DModelDrawable*> Drawables;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
-	TArray<FLive2DModelDrawable> Drawables;
 	TArray<FLive2DModelDrawable> UnSortedDrawables;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -111,8 +112,8 @@ private:
 	void SetPartOpacityValueInternal(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 	void SetupRenderTarget();
 	void UpdateRenderTarget();
-	void ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable, UCanvas*& Canvas, const FLive2DModelCanvasInfo& CanvasInfo, FDrawToRenderTargetContext& Context);
-	void ProcessNonMaskedDrawable(const FLive2DModelDrawable& Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo);
+	void ProcessMaskedDrawable(const FLive2DModelDrawable* Drawable, UCanvas*& Canvas, const FLive2DModelCanvasInfo& CanvasInfo, FDrawToRenderTargetContext& Context);
+	void ProcessNonMaskedDrawable(const FLive2DModelDrawable* Drawable, UCanvas* Canvas, const FLive2DModelCanvasInfo& CanvasInfo);
 	FVector2D ProcessVertex(FVector2D Vertex, const FLive2DModelCanvasInfo& CanvasInfo);
 	bool InitializeMoc(uint8* Source);
 	bool InitializeModel();
