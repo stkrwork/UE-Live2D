@@ -591,14 +591,14 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 		TriangleItem.BlendMode = SE_BLEND_Masked;
 		//TriangleItem.StereoDepth = Drawable.DrawOrder;
 
-		if (MaskDrawable.bIsInvertedMask)
-		{
-			TriangleItem.BatchedElementParameters = new FLive2DInvertedMaskBatchedElements();
-		}
-		else
-		{
-			TriangleItem.BatchedElementParameters = new FLive2DMaskBatchedElements();
-		}
+		// if (MaskDrawable.bIsInvertedMask)
+		// {
+		// 	TriangleItem.BatchedElementParameters = new FLive2DInvertedMaskBatchedElements();
+		// }
+		// else
+		// {
+		// 	TriangleItem.BatchedElementParameters = new FLive2DMaskBatchedElements();
+		// }
 
 		MaskingCanvas->DrawItem(TriangleItem);
 	}
@@ -634,7 +634,7 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable& Drawable
 	// FCanvasTriangleItem TriangleItem(TriangleList, Textures[Drawable.TextureIndex]->GetResource());
 	// TriangleItem.BlendMode = SE_BLEND_Masked;
 	// //TriangleItem.StereoDepth = Drawable.DrawOrder;
-	// TriangleItem.BatchedElementParameters = new FLive2DMaskedBatchedElements(RenderTarget);
+	// TriangleItem.BatchedElementParameters = new FLive2DMasked2BatchedElements(Textures[Drawable.TextureIndex]);
 	//
 	// MaskingCanvas->DrawItem(TriangleItem);
 
