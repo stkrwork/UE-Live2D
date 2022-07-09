@@ -8,6 +8,7 @@
 #include "Toolkits/AssetEditorToolkit.h"
 #include "Live2DModelEditorModule.h"
 #include "Slate/SLive2dModelImage.h"
+#include "Widgets/Layout/SConstraintCanvas.h"
 #include "Widgets/Layout/SScaleBox.h"
 
 #define LOCTEXT_NAMESPACE "Live2DModelEditor"
@@ -184,17 +185,38 @@ TSharedRef<SDockTab> FLive2DModelEditor::SpawnLive2DModelPreviewTab(const FSpawn
 	// Return a new slate dockable tab that contains our details view
 	return SNew(SDockTab)
 		.Icon(FEditorStyle::GetBrush("GenericEditor.Tabs.Properties"))
-		.Label(LOCTEXT("GenericModelPreviewTitle", "Model Preview"))
+		.Label(LOCTEXT("GenericMotionPreviewTitle", "Motion Preview"))
 		.TabColorScale(GetTabColorScale())
+	[
+		SNew(SConstraintCanvas)
+		+ SConstraintCanvas::Slot()
+		.AutoSize(true)
+		.Anchors(FAnchors(0.f, 0.f, 1.f, 1.f))
 		[
 			SNew(SScaleBox)
 			.Stretch(EStretch::ScaleToFit)
 			.StretchDirection(EStretchDirection::Both)
 			[
-				// Provide the preview as this tab its content
-				Live2DModelPreview.ToSharedRef()
+				SNew(SConstraintCanvas)
+				+ SConstraintCanvas::Slot()
+				.Anchors(FAnchors(0.f, 0.f, 1.f, 1.f))
+				[
+					// Provide the preview as this tab its content
+					SNew(SImage)
+					.Image(FEditorStyle::GetBrush(TEXT("Checkerboard")))
+				]
+				+ SConstraintCanvas::Slot()
+				.AutoSize(true)
+				.Anchors(FAnchors(0.5f))
+				.Alignment(0.5f)
+				[
+					// Provide the preview as this tab its content
+					Live2DModelPreview.ToSharedRef()	
+				]
 			]
-		];	
+			
+		]
+	];	
 }
 
 #undef LOCTEXT_NAMESPACE

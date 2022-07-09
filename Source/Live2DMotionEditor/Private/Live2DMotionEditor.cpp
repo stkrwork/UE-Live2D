@@ -9,6 +9,7 @@
 #include "Live2DMotionEditorModule.h"
 #include "Motion/Live2DModelMotion.h"
 #include "Slate/SLive2dModelImage.h"
+#include "Widgets/Layout/SConstraintCanvas.h"
 #include "Widgets/Layout/SScaleBox.h"
 
 #define LOCTEXT_NAMESPACE "Live2DMotionEditor"
@@ -228,12 +229,33 @@ TSharedRef<SDockTab> FLive2DMotionEditor::SpawnLive2DMotionPreviewTab(const FSpa
 		.Label(LOCTEXT("GenericMotionPreviewTitle", "Motion Preview"))
 		.TabColorScale(GetTabColorScale())
 	[
-		SNew(SScaleBox)
-		.Stretch(EStretch::ScaleToFit)
-		.StretchDirection(EStretchDirection::Both)
+		SNew(SConstraintCanvas)
+		+ SConstraintCanvas::Slot()
+		.AutoSize(true)
+		.Anchors(FAnchors(0.f, 0.f, 1.f, 1.f))
 		[
-			// Provide the preview as this tab its content
-			Live2DModelPreview.ToSharedRef()
+			SNew(SScaleBox)
+			.Stretch(EStretch::ScaleToFit)
+			.StretchDirection(EStretchDirection::Both)
+			[
+				SNew(SConstraintCanvas)
+				+ SConstraintCanvas::Slot()
+				.Anchors(FAnchors(0.f, 0.f, 1.f, 1.f))
+				[
+					// Provide the preview as this tab its content
+					SNew(SImage)
+					.Image(FEditorStyle::GetBrush(TEXT("Checkerboard")))
+				]
+				+ SConstraintCanvas::Slot()
+				.AutoSize(true)
+				.Anchors(FAnchors(0.5f))
+				.Alignment(0.5f)
+				[
+					// Provide the preview as this tab its content
+					Live2DModelPreview.ToSharedRef()	
+				]
+			]
+			
 		]
 	];	
 }
