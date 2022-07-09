@@ -232,30 +232,34 @@ TSharedRef<SDockTab> FLive2DMotionEditor::SpawnLive2DMotionPreviewTab(const FSpa
 		SNew(SConstraintCanvas)
 		+ SConstraintCanvas::Slot()
 		.AutoSize(true)
-		.Anchors(FAnchors(0.f, 0.f, 1.f, 1.f))
+		.Anchors(FAnchors(0.5f))
 		[
-			SNew(SScaleBox)
-			.Stretch(EStretch::ScaleToFit)
-			.StretchDirection(EStretchDirection::Both)
+			SNew(SConstraintCanvas)
+			+ SConstraintCanvas::Slot()
+			.AutoSize(true)
 			[
-				SNew(SConstraintCanvas)
-				+ SConstraintCanvas::Slot()
-				.Anchors(FAnchors(0.f, 0.f, 1.f, 1.f))
+				SNew(SScaleBox)
+				.Stretch(EStretch::ScaleToFit)
+				.StretchDirection(EStretchDirection::Both)
 				[
-					// Provide the preview as this tab its content
-					SNew(SImage)
-					.Image(FEditorStyle::GetBrush(TEXT("Checkerboard")))
-				]
-				+ SConstraintCanvas::Slot()
-				.AutoSize(true)
-				.Anchors(FAnchors(0.5f))
-				.Alignment(0.5f)
-				[
-					// Provide the preview as this tab its content
-					Live2DModelPreview.ToSharedRef()	
+					SNew(SConstraintCanvas)
+					+ SConstraintCanvas::Slot()
+					.Anchors(FAnchors(0.f, 0.f, 1.f, 1.f))
+					[
+						// Provide the preview as this tab its content
+						SNew(SImage)
+						.Image(FEditorStyle::GetBrush(TEXT("Checkerboard")))
+					]
+					+ SConstraintCanvas::Slot()
+					.AutoSize(true)
+					.Anchors(FAnchors(0.5f))
+					.Alignment(0.5f)
+					[
+						// Provide the preview as this tab its content
+						Live2DModelPreview.ToSharedRef()	
+					]
 				]
 			]
-			
 		]
 	];	
 }
