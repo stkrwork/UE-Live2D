@@ -777,19 +777,7 @@ FVector2D ULive2DMocModel::ProcessVertex(FVector2D Vertex, const FLive2DModelCan
 {
 	FVector2D CanvasCenter(CanvasInfo.PivotOrigin.X/CanvasInfo.PixelsPerUnit,CanvasInfo.PivotOrigin.Y/CanvasInfo.PixelsPerUnit);
 	FVector2D CanvasDimensions(CanvasInfo.Size.X/CanvasInfo.PixelsPerUnit,CanvasInfo.Size.Y/CanvasInfo.PixelsPerUnit);
-	Vertex += (FVector2D(0.5f));
-	
-	if (CanvasCenter.X != 0.5f)
-	{
-		Vertex.X += (CanvasCenter.X - 0.5f);
-	}
-	
-	if (CanvasCenter.Y != 0.5f)
-	{
-		Vertex.Y += (CanvasCenter.Y - 0.5f);
-	}
-	
-	Vertex = FMath::Abs(Vertex);
+	Vertex += CanvasCenter;
 	
 	Vertex /= CanvasDimensions;
 	Vertex.Y = 1.f - Vertex.Y;
