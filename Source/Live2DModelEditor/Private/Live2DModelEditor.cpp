@@ -5,9 +5,9 @@
 #include "PropertyEditorModule.h"
 #include "IDetailsView.h"
 #include "Editor.h"
+#include "Live2DMocModel.h"
 #include "Toolkits/AssetEditorToolkit.h"
 #include "Live2DModelEditorModule.h"
-#include "Slate/SLive2dModelImage.h"
 #include "Widgets/Layout/SConstraintCanvas.h"
 #include "Widgets/Layout/SScaleBox.h"
 
@@ -188,38 +188,40 @@ TSharedRef<SDockTab> FLive2DModelEditor::SpawnLive2DModelPreviewTab(const FSpawn
 		.Label(LOCTEXT("GenericMotionPreviewTitle", "Motion Preview"))
 		.TabColorScale(GetTabColorScale())
 	[
-		SNew(SConstraintCanvas)
-		+ SConstraintCanvas::Slot()
-		.AutoSize(true)
-		.Anchors(FAnchors(0.5f))
-		[
-			SNew(SConstraintCanvas)
-			+ SConstraintCanvas::Slot()
-			.AutoSize(true)
-			[
-				SNew(SScaleBox)
-				.Stretch(EStretch::ScaleToFit)
-				.StretchDirection(EStretchDirection::Both)
-				[
-					SNew(SConstraintCanvas)
-					+ SConstraintCanvas::Slot()
-					.Anchors(FAnchors(0.f, 0.f, 1.f, 1.f))
-					[
-						// Provide the preview as this tab its content
-						SNew(SImage)
-						.Image(FEditorStyle::GetBrush(TEXT("Checkerboard")))
-					]
-					+ SConstraintCanvas::Slot()
-					.AutoSize(true)
-					.Anchors(FAnchors(0.5f))
-					.Alignment(0.5f)
-					[
-						// Provide the preview as this tab its content
-						Live2DModelPreview.ToSharedRef()	
-					]
-				]
-			]
-		]
+		// Provide the preview as this tab its content
+		Live2DModelPreview.ToSharedRef()
+		// SNew(SConstraintCanvas)
+		// + SConstraintCanvas::Slot()
+		// .AutoSize(true)
+		// .Anchors(FAnchors(0.5f))
+		// [
+		// 	SNew(SConstraintCanvas)
+		// 	+ SConstraintCanvas::Slot()
+		// 	.AutoSize(true)
+		// 	[
+		// 		SNew(SScaleBox)
+		// 		.Stretch(EStretch::ScaleToFit)
+		// 		.StretchDirection(EStretchDirection::Both)
+		// 		[
+		// 			SNew(SConstraintCanvas)
+		// 			+ SConstraintCanvas::Slot()
+		// 			.Anchors(FAnchors(0.f, 0.f, 1.f, 1.f))
+		// 			[
+		// 				// Provide the preview as this tab its content
+		// 				SNew(SImage)
+		// 				.Image(FEditorStyle::GetBrush(TEXT("Checkerboard")))
+		// 			]
+		// 			+ SConstraintCanvas::Slot()
+		// 			.AutoSize(true)
+		// 			.Anchors(FAnchors(0.5f))
+		// 			.Alignment(0.5f)
+		// 			[
+		// 				// Provide the preview as this tab its content
+		// 				Live2DModelPreview.ToSharedRef()	
+		// 			]
+		// 		]
+		// 	]
+		// ]
 	];	
 }
 
