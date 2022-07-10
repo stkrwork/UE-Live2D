@@ -42,8 +42,24 @@ void ULive2DModelMotion::RebindDelegates()
 
 void ULive2DModelMotion::ToggleMotionInEditor()
 {
-	DeltaTime = 1.f/FPS;
 	ToggleTimer();
+}
+
+void ULive2DModelMotion::StartMotion()
+{
+	Model->OnModelTick.AddUniqueDynamic(this, &ULive2DModelMotion::Tick);
+	Model->StartTicking(DeltaTime);
+}
+
+void ULive2DModelMotion::StopMotion(const bool bResetToDefaultState)
+{
+	Model->StopTicking();
+	Model->OnModelTick.RemoveDynamic(this, &ULive2DModelMotion::Tick);
+	if (bResetToDefaultState)
+	{
+		Model->ResetParametersToDefault();
+		Model->UpdateDrawables();
+	}
 }
 
 void ULive2DModelMotion::ToggleTimer()
@@ -62,6 +78,7 @@ void ULive2DModelMotion::ToggleTimer()
 
 void ULive2DModelMotion::Tick(const float InDeltaTime)
 {
+	const float PreviousTime = CurrentTime;
 	CurrentTime = FMath::Min(Duration, CurrentTime + InDeltaTime);
 	for (auto& Curve: Curves)
 	{
@@ -79,6 +96,14 @@ void ULive2DModelMotion::Tick(const float InDeltaTime)
 		else if (Curve.Target == ECurveTarget::TARGET_PART_OPACITY)
 		{
 			Curve.UpdatePartOpacity(Model, CurrentTime);
+		}
+	}
+
+	for (const auto& Event: UserData)
+	{
+		if (PreviousTime < Event.Time && CurrentTime >= Event.Time)
+		{
+			OnMotionEvent.Broadcast(Event.Value);
 		}
 	}
 

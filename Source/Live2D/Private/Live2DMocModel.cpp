@@ -256,6 +256,21 @@ void ULive2DMocModel::SetParameterValue(const FString& ParameterName, const floa
 	SetParameterValueInternal(ParameterName, Value, bUpdateDrawables);
 }
 
+void ULive2DMocModel::ResetParametersToDefault()
+{
+	const int32 ModelParameterCount = csmGetParameterCount(Model);
+	const char** ModelParameterIds = csmGetParameterIds(Model);
+	float* ModelParameterValues = csmGetParameterValues(Model);
+	const float* ModelParameterDefaultValues = csmGetParameterDefaultValues(Model);
+
+	for(int32 ParameterIndex = 0; ParameterIndex < ModelParameterCount; ParameterIndex++)
+	{
+		const FString ParameterId = ModelParameterIds[ParameterIndex];
+		ParameterValues.Add(ParameterId, ModelParameterDefaultValues[ParameterIndex]);
+		ModelParameterValues[ParameterIndex] = ModelParameterDefaultValues[ParameterIndex];
+	}
+}
+
 float ULive2DMocModel::GetPartOpacityValue(const FString& ParameterName)
 {
 	auto* PartOpacity = PartOpacities.Find(ParameterName);

@@ -26,6 +26,17 @@ public:
 	UFUNCTION(CallInEditor)
 	void ToggleMotionInEditor();
 
+	UFUNCTION(BlueprintCallable, Category="Live2D Motion")
+	void StartMotion();
+	
+	UFUNCTION(BlueprintCallable, Category="Live2D Motion")
+	void StopMotion(const bool bResetToDefaultState);
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMotionEvent, const FString&, MotionEventName);
+
+	UPROPERTY(BlueprintAssignable)
+	FOnMotionEvent OnMotionEvent;
+
 protected:
 
 	void ToggleTimer();
@@ -50,6 +61,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FLive2DModelMotionCurve> Curves;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TArray<FMotion3UserData> UserData;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float DeltaTime = 0.f;

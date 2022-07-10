@@ -43,6 +43,8 @@ public:
 	float GetDefaultParameterValue(const FString& ParameterName);
 	void SetParameterValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 
+	void ResetParametersToDefault();
+
 	float GetPartOpacityValue(const FString& ParameterName);
 	void SetPartOpacityValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 
