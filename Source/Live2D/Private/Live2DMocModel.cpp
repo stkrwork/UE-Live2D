@@ -779,13 +779,9 @@ void ULive2DMocModel::ProcessNonMaskedDrawable(const FLive2DModelDrawable* Drawa
 
 FVector2D ULive2DMocModel::ProcessVertex(FVector2D Vertex, const FLive2DModelCanvasInfo& CanvasInfo)
 {
-	FVector2D CanvasCenter(CanvasInfo.PivotOrigin.X/CanvasInfo.PixelsPerUnit,CanvasInfo.PivotOrigin.Y/CanvasInfo.PixelsPerUnit);
-	FVector2D CanvasDimensions(CanvasInfo.Size.X/CanvasInfo.PixelsPerUnit,CanvasInfo.Size.Y/CanvasInfo.PixelsPerUnit);
-	
-	
-	Vertex += CanvasCenter;
-	//Vertex.Y = 1.f - Vertex.Y;
 	Vertex *= CanvasInfo.PixelsPerUnit;
+	Vertex += CanvasInfo.PivotOrigin;
+	Vertex.Y = CanvasInfo.Size.Y - Vertex.Y;
 
 	return Vertex;
 }
