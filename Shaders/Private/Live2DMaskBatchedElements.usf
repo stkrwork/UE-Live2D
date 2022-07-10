@@ -15,14 +15,14 @@ void MainPS(
 	)
 {
 	float4 BaseColor = InMaskTexture.Sample(InMaskTextureSampler, InUv);
-	//clip(BaseColor.a - InClipRef);
-	OutColor = BaseColor * Color;
+	clip(BaseColor.a - InClipRef);
+	OutColor.rgb = BaseColor.rgb * Color.rgb;
 
-// #if LIVE_2D_INVERTED_MASK
-// 	OutColor = (1.0 - BaseColor) * Color;
-// #else
-// 	OutColor = BaseColor * Color;
-// #endif
+#if LIVE_2D_INVERTED_MASK
+	OutColor.a = (1.0 - BaseColor.a);
+#else
+	OutColor.a = BaseColor.a;
+#endif
 
 	OutColor = RETURN_COLOR(OutColor);
 }

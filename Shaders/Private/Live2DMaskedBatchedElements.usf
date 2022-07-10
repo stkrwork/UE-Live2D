@@ -18,17 +18,15 @@ void MainPS(
 	)
 {
 	float4 BaseColor = InMainTexture.Sample(InMainTextureSampler, InUv);
-	//ReplicateChannel(BaseColor, float4(0, 0,0,0), float4(0,0,0,1));
 	float2 MaskUv = SvPosition.xy / InMaskSize;
 	float4 MaskColor = InMaskTexture.Sample(InMaskTextureSampler, MaskUv);
-	//ReplicateChannel(MaskColor, float4(0, 0,0,0), float4(0,0,0,1));
 	clip(BaseColor.a - MaskColor.a);
 	OutColor.rgb = BaseColor.rgb * Color.rgb;
-	// if( InGamma != 1.0 )
-	// {
-	// 	// Gamma correct the output color.
-	// 	OutColor.rgb = ApplyGammaCorrection(saturate(OutColor.rgb), 2.2 * InGamma);
-	// }
+	if( InGamma != 1.0 )
+	{
+		// Gamma correct the output color.
+		OutColor.rgb = ApplyGammaCorrection(saturate(OutColor.rgb), 2.2 * InGamma);
+	}
 
 	OutColor.a = MaskColor.a;
 	

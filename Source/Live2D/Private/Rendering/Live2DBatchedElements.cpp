@@ -1,9 +1,9 @@
 ﻿#include "Live2DBatchedElements.h"
 #include "GlobalShader.h"
 #include "Live2DLogCategory.h"
-#include "Live2DSimpleElementShaders.h"
 #include "ShaderParameterStruct.h"
 #include "ShaderParameterMacros.h"
+#include "SimpleElementShaders.h"
 #include "Engine/TextureRenderTarget2D.h"
 
 float GBatchedElementAlphaRefVal = 128.f;
@@ -68,35 +68,7 @@ IMPLEMENT_GLOBAL_SHADER(FLive2DMaskShader<false>, "/Plugin/UELive2D/Private/Live
 
 
 void FLive2DMaskedBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGraphicsPipelineStateInitializer& GraphicsPSOInit, ERHIFeatureLevel::Type InFeatureLevel, const FMatrix& InTransform, const float InGamma, const FMatrix& ColorWeights, const FTexture* Texture)
-{
-	// TShaderMapRef<FSimpleElementVS> VertexShader(GetGlobalShaderMap(InFeatureLevel));
-	// 		
-	// GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GSimpleElementVertexDeclaration.VertexDeclarationRHI;
-	// GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-	// GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_Zero, BO_Add, BF_Zero, BF_One>::GetRHI();
-	//
-	// if (Texture->bSRGB)
-	// {
-	// 	TShaderMapRef<FSimpleElementMaskedGammaPS_SRGB> MaskedPixelShader(GetGlobalShaderMap(InFeatureLevel));
-	// 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = MaskedPixelShader.GetPixelShader();
-	// 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-	//
-	// 	MaskedPixelShader->SetEditorCompositingParameters(RHICmdList, nullptr);
-	// 	MaskedPixelShader->SetParameters(RHICmdList, Texture, InGamma, GBatchedElementAlphaRefVal / 255.0f, SE_BLEND_Masked);
-	// }
-	// else
-	// {
-	// 	TShaderMapRef<FSimpleElementMaskedGammaPS_Linear> MaskedPixelShader(GetGlobalShaderMap(InFeatureLevel));
-	// 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = MaskedPixelShader.GetPixelShader();
-	//
-	// 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-	//
-	// 	MaskedPixelShader->SetEditorCompositingParameters(RHICmdList, nullptr);
-	// 	MaskedPixelShader->SetParameters(RHICmdList, Texture, InGamma, GBatchedElementAlphaRefVal / 255.0f, SE_BLEND_Masked);
-	// }
-	//
-	// VertexShader->SetParameters(RHICmdList, InTransform);
-	
+{	
 	TShaderMapRef<FSimpleElementVS> VertexShader(GetGlobalShaderMap(InFeatureLevel));
 	TShaderMapRef<FLive2DMaskedShader> PixelShader(GetGlobalShaderMap(InFeatureLevel));
 	
@@ -104,7 +76,19 @@ void FLive2DMaskedBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGra
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
 	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
 	GraphicsPSOInit.PrimitiveType = PT_TriangleList;
-	GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_Zero, BF_One>::GetRHI();
+	switch (BlendMode)
+	{
+	case SE_BLEND_Additive:
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_One, BF_One>::GetRHI();
+		break;
+	case SE_BLEND_Modulate:
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_DestColor, BF_Zero>::GetRHI();
+		break;
+	case SE_BLEND_Masked:
+	default:
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha>::GetRHI();
+		break;
+	}
 	
 	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, EApplyRendertargetOption::ForceApply);
 	
@@ -124,127 +108,45 @@ void FLive2DMaskedBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGra
 void FLive2DMaskBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGraphicsPipelineStateInitializer& GraphicsPSOInit, ERHIFeatureLevel::Type InFeatureLevel, const FMatrix& InTransform, const float InGamma, const FMatrix& ColorWeights, const FTexture* Texture)
 {
 	TShaderMapRef<FSimpleElementVS> VertexShader(GetGlobalShaderMap(InFeatureLevel));
-			
+	TShaderMapRef<FLive2DMaskShader<false>> PixelShader(GetGlobalShaderMap(InFeatureLevel));
+	
 	GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GSimpleElementVertexDeclaration.VertexDeclarationRHI;
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+	GraphicsPSOInit.PrimitiveType = PT_TriangleList;
 	GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-
-	if (Texture->bSRGB)
-	{
-		TShaderMapRef<FSimpleElementMaskedGammaPS_SRGB> MaskedPixelShader(GetGlobalShaderMap(InFeatureLevel));
-		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = MaskedPixelShader.GetPixelShader();
-		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-
-		MaskedPixelShader->SetEditorCompositingParameters(RHICmdList, nullptr);
-		MaskedPixelShader->SetParameters(RHICmdList, Texture, InGamma, GBatchedElementAlphaRefVal / 255.0f, SE_BLEND_Masked);
-	}
-	else
-	{
-		TShaderMapRef<FSimpleElementMaskedGammaPS_Linear> MaskedPixelShader(GetGlobalShaderMap(InFeatureLevel));
-		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = MaskedPixelShader.GetPixelShader();
-
-		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-
-		MaskedPixelShader->SetEditorCompositingParameters(RHICmdList, nullptr);
-		MaskedPixelShader->SetParameters(RHICmdList, Texture, InGamma, GBatchedElementAlphaRefVal / 255.0f, SE_BLEND_Masked);
-	}
+	
+	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, EApplyRendertargetOption::ForceApply);
 	
 	VertexShader->SetParameters(RHICmdList, InTransform);
-	// FRHITexture* RHITexture = nullptr;
-	// FRHISamplerState* RHISamplerState = nullptr;
-	//
-	// if ( Texture != nullptr )
-	// {
-	// 	RHITexture = Texture->TextureRHI;
-	// 	RHISamplerState = Texture->SamplerStateRHI;
-	// }
-	// else
-	// {
-	// 	UE_LOG(LogLive2D, Fatal, TEXT("FLive2DMaskBatchedElements::BindShaders: Texture parameter null!"));
-	// 	return;
-	// }
-	//
-	// TShaderMapRef<FSimpleElementVS> VertexShader(GetGlobalShaderMap(InFeatureLevel));
-	// TShaderMapRef<FLive2DMaskShader<false>> PixelShader(GetGlobalShaderMap(InFeatureLevel));
-	//
-	// GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GSimpleElementVertexDeclaration.VertexDeclarationRHI;
-	// GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-	// GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-	// GraphicsPSOInit.PrimitiveType = PT_TriangleList;
-	// GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-	//
-	// SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, EApplyRendertargetOption::ForceApply);
-	//
-	// VertexShader->SetParameters(RHICmdList, InTransform);
-	//
-	// FLive2DMaskShader<false>::FParameters PassParameters;
-	// PassParameters.InMaskTexture = RHITexture;
-	// PassParameters.InMaskTextureSampler = RHISamplerState;
-	// PassParameters.InGamma = InGamma;
-	// PassParameters.InClipRef = GBatchedElementAlphaRefVal / 255.0f;
-	// SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
+	
+	FLive2DMaskShader<false>::FParameters PassParameters;
+	PassParameters.InMaskTexture = Texture2D->GetResource()->TextureRHI;
+	PassParameters.InMaskTextureSampler = Texture2D->GetResource()->SamplerStateRHI;
+	PassParameters.InGamma = InGamma;
+	PassParameters.InClipRef = GBatchedElementAlphaRefVal / 255.0f;
+	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
 }
 
 void FLive2DInvertedMaskBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGraphicsPipelineStateInitializer& GraphicsPSOInit, ERHIFeatureLevel::Type InFeatureLevel, const FMatrix& InTransform, const float InGamma, const FMatrix& ColorWeights, const FTexture* Texture)
-{
+{	
 	TShaderMapRef<FSimpleElementVS> VertexShader(GetGlobalShaderMap(InFeatureLevel));
-			
+	TShaderMapRef<FLive2DMaskShader<true>> PixelShader(GetGlobalShaderMap(InFeatureLevel));
+	
 	GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GSimpleElementVertexDeclaration.VertexDeclarationRHI;
 	GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
+	GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
+	GraphicsPSOInit.PrimitiveType = PT_TriangleList;
 	GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-
-	if (Texture->bSRGB)
-	{
-		TShaderMapRef<FSimpleElementMaskedGammaPS_SRGB> MaskedPixelShader(GetGlobalShaderMap(InFeatureLevel));
-		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = MaskedPixelShader.GetPixelShader();
-		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-
-		MaskedPixelShader->SetEditorCompositingParameters(RHICmdList, nullptr);
-		MaskedPixelShader->SetParameters(RHICmdList, Texture, InGamma, GBatchedElementAlphaRefVal / 255.0f, SE_BLEND_Masked);
-	}
-	else
-	{
-		TShaderMapRef<FSimpleElementMaskedGammaPS_Linear> MaskedPixelShader(GetGlobalShaderMap(InFeatureLevel));
-		GraphicsPSOInit.BoundShaderState.PixelShaderRHI = MaskedPixelShader.GetPixelShader();
-
-		SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
-
-		MaskedPixelShader->SetEditorCompositingParameters(RHICmdList, nullptr);
-		MaskedPixelShader->SetParameters(RHICmdList, Texture, InGamma, GBatchedElementAlphaRefVal / 255.0f, SE_BLEND_Masked);
-	}
+	
+	SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, EApplyRendertargetOption::ForceApply);
 	
 	VertexShader->SetParameters(RHICmdList, InTransform);
-	// FRHITexture* RHITexture = nullptr;
-	// FRHISamplerState* RHISamplerState = nullptr;
-	//
-	// if ( Texture != nullptr )
-	// {
-	// 	RHITexture = Texture->TextureRHI;
-	// 	RHISamplerState = Texture->SamplerStateRHI;
-	// }
-	// else
-	// {
-	// 	UE_LOG(LogLive2D, Fatal, TEXT("FLive2DInvertedMaskBatchedElements::BindShaders: Texture parameter null!"));
-	// 	return;
-	// }
-	//
-	// TShaderMapRef<FSimpleElementVS> VertexShader(GetGlobalShaderMap(InFeatureLevel));
-	// TShaderMapRef<FLive2DMaskShader<true>> PixelShader(GetGlobalShaderMap(InFeatureLevel));
-	//
-	// GraphicsPSOInit.BoundShaderState.VertexDeclarationRHI = GSimpleElementVertexDeclaration.VertexDeclarationRHI;
-	// GraphicsPSOInit.BoundShaderState.VertexShaderRHI = VertexShader.GetVertexShader();
-	// GraphicsPSOInit.BoundShaderState.PixelShaderRHI = PixelShader.GetPixelShader();
-	// GraphicsPSOInit.PrimitiveType = PT_TriangleList;
-	// GraphicsPSOInit.BlendState = TStaticBlendState<>::GetRHI();
-	//
-	// SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit, EApplyRendertargetOption::ForceApply);
-	//
-	// VertexShader->SetParameters(RHICmdList, InTransform);
-	//
-	// FLive2DMaskShader<true>::FParameters PassParameters;
-	// PassParameters.InMaskTexture = RHITexture;
-	// PassParameters.InMaskTextureSampler = RHISamplerState;
-	// PassParameters.InGamma = InGamma;
-	// PassParameters.InClipRef = GBatchedElementAlphaRefVal / 255.0f;
-	// SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
+	
+	FLive2DMaskShader<true>::FParameters PassParameters;
+	PassParameters.InMaskTexture = Texture2D->GetResource()->TextureRHI;
+	PassParameters.InMaskTextureSampler = Texture2D->GetResource()->SamplerStateRHI;
+	PassParameters.InGamma = InGamma;
+	PassParameters.InClipRef = GBatchedElementAlphaRefVal / 255.0f;
+	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
 }
