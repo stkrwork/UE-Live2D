@@ -228,8 +228,13 @@ TSharedRef<SDockTab> FLive2DMotionEditor::SpawnLive2DMotionPreviewTab(const FSpa
 		.Label(LOCTEXT("GenericMotionPreviewTitle", "Motion Preview"))
 		.TabColorScale(GetTabColorScale())
 	[
+		SNew(SScaleBox)
+		.Stretch(EStretch::ScaleToFit)
+		.StretchDirection(EStretchDirection::Both)
+		[
 		// Provide the preview as this tab its content
-		Live2DModelPreview.ToSharedRef()
+			Live2DModelPreview.ToSharedRef()
+		]
 		// SNew(SConstraintCanvas)
 		// + SConstraintCanvas::Slot()
 		// .AutoSize(true)
