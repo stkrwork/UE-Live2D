@@ -44,7 +44,6 @@ bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData, const FMo
 		{
 		case ECurveSegmentType::LINEAR_SEGMENT:
 			{
-				Segment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateLinear);
 				Point.Time = CurveData.Segments[i++];
 				Point.Value = CurveData.Segments[i++];
 				Points.Add(Point);
@@ -54,14 +53,6 @@ bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData, const FMo
 			break;
 		case ECurveSegmentType::BEZIER_SEGMENT:
 			{
-				if (MetaData.bAreBeziersRestricted)
-				{
-					Segment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateBezier);
-				}
-				else
-				{
-					Segment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateBezierCardanoInterpretation);					
-				}
 				Point.Time = CurveData.Segments[i++];
 				Point.Value = CurveData.Segments[i++];
 				Points.Add(Point);
@@ -76,7 +67,6 @@ bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData, const FMo
 			break;
 		case ECurveSegmentType::STEPPED_SEGMENT:
 			{
-				Segment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateStepped);
 				Point.Time = CurveData.Segments[i++];
 				Point.Value = CurveData.Segments[i++];
 				Points.Add(Point);
@@ -85,7 +75,6 @@ bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData, const FMo
 			break;
 		case ECurveSegmentType::INVERSE_STEPPED_SEGMENT:
 			{
-				Segment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateInverseStepped);
 				Point.Time = CurveData.Segments[i++];
 				Point.Value = CurveData.Segments[i++];
 				Points.Add(Point);
@@ -98,45 +87,7 @@ bool FLive2DModelMotionCurve::Init(const FMotion3CurveData& CurveData, const FMo
 	return true;
 }
 
-void FLive2DModelMotionCurve::RebindDelegates(const bool bAreBeziersRestricted)
-{	
-	for (int32 i = 0; i < Segments.Num(); i++)
-	{
-		FCurveSegment& CurveSegment = Segments[i];
-		switch (CurveSegment.SegmentType)
-		{
-		case ECurveSegmentType::LINEAR_SEGMENT:
-			{
-				CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateLinear);
-			}
-			break;
-		case ECurveSegmentType::BEZIER_SEGMENT:
-			{
-				if (bAreBeziersRestricted)
-				{
-					CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateBezier);
-				}
-				else
-				{
-					CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateBezierCardanoInterpretation);					
-				}
-			}
-			break;
-		case ECurveSegmentType::STEPPED_SEGMENT:
-			{
-				CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateStepped);
-			}
-			break;
-		case ECurveSegmentType::INVERSE_STEPPED_SEGMENT:
-			{
-				CurveSegment.EvaluateDelegate.BindStatic(ULive2DSegmentEvaluationUtilities::EvaluateInverseStepped);
-			}
-			break;
-		}
-	}
-}
-
-void FLive2DModelMotionCurve::UpdateParameter(ULive2DMocModel* Model, const float Time)
+void FLive2DModelMotionCurve::UpdateParameter(ULive2DMocModel* Model, const float Time, const bool bAreBeziersRestricted)
 {
 	float Value = 0.f;
 	for (int32 i = 0; i < Segments.Num() - 1; i++)
@@ -146,7 +97,36 @@ void FLive2DModelMotionCurve::UpdateParameter(ULive2DMocModel* Model, const floa
 		const FSegmentAnimationPoint NextSegmentPoint = Points[NextCurveSegment.PointIndex];
 		if (NextSegmentPoint.Time > Time)
 		{
-			Value = CurveSegment.EvaluateDelegate.Execute(&Points[CurveSegment.PointIndex], Time);
+			switch (CurveSegment.SegmentType)
+			{
+			case ECurveSegmentType::LINEAR_SEGMENT:
+				{
+					ULive2DSegmentEvaluationUtilities::EvaluateLinear(&Points[CurveSegment.PointIndex], Time);
+				}
+				break;
+			case ECurveSegmentType::BEZIER_SEGMENT:
+				{
+					if (bAreBeziersRestricted)
+					{
+						ULive2DSegmentEvaluationUtilities::EvaluateBezier(&Points[CurveSegment.PointIndex], Time);
+					}
+					else
+					{
+						ULive2DSegmentEvaluationUtilities::EvaluateBezierCardanoInterpretation(&Points[CurveSegment.PointIndex], Time);					
+					}
+				}
+				break;
+			case ECurveSegmentType::STEPPED_SEGMENT:
+				{
+					ULive2DSegmentEvaluationUtilities::EvaluateStepped(&Points[CurveSegment.PointIndex], Time);
+				}
+				break;
+			case ECurveSegmentType::INVERSE_STEPPED_SEGMENT:
+				{
+					ULive2DSegmentEvaluationUtilities::EvaluateInverseStepped(&Points[CurveSegment.PointIndex], Time);
+				}
+				break;
+			}
 			break;
 		}
 
@@ -159,7 +139,7 @@ void FLive2DModelMotionCurve::UpdateParameter(ULive2DMocModel* Model, const floa
 	Model->SetParameterValue(Id, Value);
 }
 
-void FLive2DModelMotionCurve::UpdatePartOpacity(ULive2DMocModel* Model, const float Time)
+void FLive2DModelMotionCurve::UpdatePartOpacity(ULive2DMocModel* Model, const float Time, const bool bAreBeziersRestricted)
 {
 	float Value = 0.f;
 	for (int32 i = 0; i < Segments.Num(); i++)
@@ -168,7 +148,36 @@ void FLive2DModelMotionCurve::UpdatePartOpacity(ULive2DMocModel* Model, const fl
 		auto Point = Points[CurveSegment.PointIndex];
 		if (Point.Time > Time)
 		{
-			Value = CurveSegment.EvaluateDelegate.Execute(&Points[CurveSegment.PointIndex], Time);
+			switch (CurveSegment.SegmentType)
+			{
+			case ECurveSegmentType::LINEAR_SEGMENT:
+				{
+					ULive2DSegmentEvaluationUtilities::EvaluateLinear(&Points[CurveSegment.PointIndex], Time);
+				}
+				break;
+			case ECurveSegmentType::BEZIER_SEGMENT:
+				{
+					if (bAreBeziersRestricted)
+					{
+						ULive2DSegmentEvaluationUtilities::EvaluateBezier(&Points[CurveSegment.PointIndex], Time);
+					}
+					else
+					{
+						ULive2DSegmentEvaluationUtilities::EvaluateBezierCardanoInterpretation(&Points[CurveSegment.PointIndex], Time);					
+					}
+				}
+				break;
+			case ECurveSegmentType::STEPPED_SEGMENT:
+				{
+					ULive2DSegmentEvaluationUtilities::EvaluateStepped(&Points[CurveSegment.PointIndex], Time);
+				}
+				break;
+			case ECurveSegmentType::INVERSE_STEPPED_SEGMENT:
+				{
+					ULive2DSegmentEvaluationUtilities::EvaluateInverseStepped(&Points[CurveSegment.PointIndex], Time);
+				}
+				break;
+			}
 			break;
 		}
 

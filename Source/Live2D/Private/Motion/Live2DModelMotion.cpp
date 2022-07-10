@@ -32,14 +32,6 @@ bool ULive2DModelMotion::Init(const FMotion3FileData& Motion3Data)
 	return true;
 }
 
-void ULive2DModelMotion::RebindDelegates()
-{
-	for (auto& Curve: Curves)
-	{
-		Curve.RebindDelegates(bAreBeziersRestricted);
-	}	
-}
-
 void ULive2DModelMotion::ToggleMotionInEditor()
 {
 	ToggleTimer();
@@ -86,16 +78,16 @@ void ULive2DModelMotion::Tick(const float InDeltaTime)
 		{
 			if (Curve.Id != TEXT("Opacity"))
 			{
-				Curve.UpdateParameter(Model, CurrentTime);
+				Curve.UpdateParameter(Model, CurrentTime, bAreBeziersRestricted);
 			}
 		}
 		if (Curve.Target == ECurveTarget::TARGET_PARAMETER)
 		{
-			Curve.UpdateParameter(Model, CurrentTime);
+			Curve.UpdateParameter(Model, CurrentTime, bAreBeziersRestricted);
 		}
 		else if (Curve.Target == ECurveTarget::TARGET_PART_OPACITY)
 		{
-			Curve.UpdatePartOpacity(Model, CurrentTime);
+			Curve.UpdatePartOpacity(Model, CurrentTime, bAreBeziersRestricted);
 		}
 	}
 

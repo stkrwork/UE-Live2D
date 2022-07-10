@@ -27,8 +27,6 @@ struct FSegmentAnimationPoint
 	float Value;
 };
 
-DECLARE_DELEGATE_RetVal_TwoParams(float, FEvaluateDelegate, const FSegmentAnimationPoint* /* Points */, const float /* Time */)
-
 USTRUCT(BlueprintType)
 struct FCurveSegment
 {
@@ -39,8 +37,6 @@ struct FCurveSegment
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 PointIndex;
-	
-	FEvaluateDelegate EvaluateDelegate;	
 };
 
 /**

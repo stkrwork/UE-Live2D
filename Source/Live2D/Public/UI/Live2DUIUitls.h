@@ -17,6 +17,9 @@ class LIVE2D_API ULive2DUIUitls : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable, Category="Live 2D")
 	static void SetBrushFromLive2DModelMotion(UImage* Image, ULive2DModelMotion* ModelMotion);
+	
+	UFUNCTION(BlueprintCallable, Category="Live 2D")
 	static void SetBrushFromSoftLive2DModelMotion(UImage* Image, TSoftObjectPtr<ULive2DModelMotion> ModelMotion);
 };

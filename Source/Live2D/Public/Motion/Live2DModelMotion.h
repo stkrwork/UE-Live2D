@@ -18,7 +18,6 @@ public:
 	virtual UWorld* GetWorld() const override;
 	
 	bool Init(const FMotion3FileData& Motion3Data);
-	void RebindDelegates();
 	
 	void SetModel(ULive2DMocModel* InModel) { Model = InModel;}
 	ULive2DMocModel* GetModel() const { return Model; }

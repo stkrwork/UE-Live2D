@@ -25,10 +25,9 @@ struct FLive2DModelMotionCurve
 	GENERATED_BODY()
 public:
 	bool Init(const FMotion3CurveData& CurveData, const FMotion3MetaData& MetaData);
-	void RebindDelegates(const bool bAreBeziersRestricted);
 
-	void UpdateParameter(ULive2DMocModel* Model, const float Time);
-	void UpdatePartOpacity(ULive2DMocModel* Model, const float Time);
+	void UpdateParameter(ULive2DMocModel* Model, const float Time, const bool bAreBeziersRestricted);
+	void UpdatePartOpacity(ULive2DMocModel* Model, const float Time, const bool bAreBeziersRestricted);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ECurveTarget Target = ECurveTarget::INVALID_TARGET;

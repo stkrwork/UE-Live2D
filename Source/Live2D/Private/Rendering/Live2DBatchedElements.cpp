@@ -6,7 +6,10 @@
 #include "SimpleElementShaders.h"
 #include "Engine/TextureRenderTarget2D.h"
 
-float GBatchedElementAlphaRefVal = 128.f;
+namespace
+{
+	float GAlphaRefVal = 128.f;
+}
 
 class FLive2DMaskedShader : public FGlobalShader
 {
@@ -101,7 +104,7 @@ void FLive2DMaskedBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGra
 	PassParameters.InMaskTextureSampler = MaskRenderTarget->GetResource()->SamplerStateRHI;
 	PassParameters.InMaskSize = FVector2D(MaskRenderTarget->SizeX, MaskRenderTarget->SizeY);
 	PassParameters.InGamma = InGamma;
-	PassParameters.InClipRef = GBatchedElementAlphaRefVal / 255.0f;
+	PassParameters.InClipRef = GAlphaRefVal / 255.0f;
 	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
 }
 
@@ -124,7 +127,7 @@ void FLive2DMaskBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGraph
 	PassParameters.InMaskTexture = Texture2D->GetResource()->TextureRHI;
 	PassParameters.InMaskTextureSampler = Texture2D->GetResource()->SamplerStateRHI;
 	PassParameters.InGamma = InGamma;
-	PassParameters.InClipRef = GBatchedElementAlphaRefVal / 255.0f;
+	PassParameters.InClipRef = GAlphaRefVal / 255.0f;
 	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
 }
 
@@ -147,6 +150,6 @@ void FLive2DInvertedMaskBatchedElements::BindShaders(FRHICommandList& RHICmdList
 	PassParameters.InMaskTexture = Texture2D->GetResource()->TextureRHI;
 	PassParameters.InMaskTextureSampler = Texture2D->GetResource()->SamplerStateRHI;
 	PassParameters.InGamma = InGamma;
-	PassParameters.InClipRef = GBatchedElementAlphaRefVal / 255.0f;
+	PassParameters.InClipRef = GAlphaRefVal / 255.0f;
 	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
 }
