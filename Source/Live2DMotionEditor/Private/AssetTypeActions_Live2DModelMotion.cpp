@@ -29,6 +29,7 @@ void FAssetTypeActions_Live2DModelMotion::OpenAssetEditor(const TArray<UObject*>
 		auto Live2DModelMotion = Cast<ULive2DModelMotion>(*ObjIt);
 		if (Live2DModelMotion != nullptr)
 		{
+			Live2DModelMotion->RebindDelegates();
 			FLive2DMotionEditorModule* Live2DModelEditorModule = &FModuleManager::LoadModuleChecked<FLive2DMotionEditorModule>("Live2DMotionEditor");
 			Live2DModelEditorModule->CreateLive2dMotionEditor(Mode, EditWithinLevelEditor, Live2DModelMotion);
 		}
