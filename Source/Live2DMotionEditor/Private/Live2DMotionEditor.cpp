@@ -68,7 +68,7 @@ void FLive2DMotionEditor::InitLive2DMotionEditor(const EToolkitMode::Type Mode, 
 	const FDetailsViewArgs DetailsViewArgs(bIsUpdatable, bIsLockable, true, FDetailsViewArgs::ObjectsUseNameArea, false);
 	MotionDetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	ModelDetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
-	SAssignNew(Live2DModelPreview, SImage).Image(&InLive2DMotion->GetModel()->GetTexture2DRenderTarget());
+	SAssignNew(Live2DModelPreview, SImage).Image(&InLive2DMotion->GetModel()->GetImageBrush());
 
 	// Create the layout of our custom asset editor
 	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout("Standalone_Live2DMotionEditor_Layout_v1")

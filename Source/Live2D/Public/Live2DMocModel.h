@@ -46,7 +46,7 @@ public:
 	float GetPartOpacityValue(const FString& ParameterName);
 	void SetPartOpacityValue(const FString& ParameterName, const float Value, const bool bUpdateDrawables = false);
 
-	FSlateBrush& GetTexture2DRenderTarget();
+	FSlateBrush& GetImageBrush();
 
 	bool IsTicking() const { return TickHandle.IsValid(); }
 	void StartTicking(const float TickRate);

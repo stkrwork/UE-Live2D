@@ -62,7 +62,7 @@ void FLive2DModelEditor::InitLive2DModelEditor(const EToolkitMode::Type Mode, co
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	const FDetailsViewArgs DetailsViewArgs(bIsUpdatable, bIsLockable, true, FDetailsViewArgs::ObjectsUseNameArea, false);
 	DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
-	SAssignNew(Live2DModelPreview, SImage).Image(&InLive2DMocModel->GetTexture2DRenderTarget());
+	SAssignNew(Live2DModelPreview, SImage).Image(&InLive2DMocModel->GetImageBrush());
 
 	// Create the layout of our custom asset editor
 	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout("Standalone_Live2DModelEditor_Layout_v1")

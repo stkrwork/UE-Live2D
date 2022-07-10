@@ -284,7 +284,7 @@ void ULive2DMocModel::SetPartOpacityValue(const FString& ParameterName, const fl
 	SetPartOpacityValueInternal(ParameterName, Value, bUpdateDrawables);
 }
 
-FSlateBrush& ULive2DMocModel::GetTexture2DRenderTarget()
+FSlateBrush& ULive2DMocModel::GetImageBrush()
 {
 	if (!RenderTarget2D)
 	{
