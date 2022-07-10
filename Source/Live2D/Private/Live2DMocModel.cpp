@@ -129,10 +129,8 @@ float ULive2DMocModel::GetModelHeight() const
 FVector2D ULive2DMocModel::GetModelSize() const
 {
 	auto CanvasInfo = GetModelCanvasInfoInternal();
-	FVector2D CanvasCenter(CanvasInfo.PivotOrigin.X/CanvasInfo.PixelsPerUnit,CanvasInfo.PivotOrigin.Y/CanvasInfo.PixelsPerUnit);
-	FVector2D CanvasDimensions(CanvasInfo.Size.X/CanvasInfo.PixelsPerUnit,CanvasInfo.Size.Y/CanvasInfo.PixelsPerUnit);
 
-	return CanvasInfo.Size / CanvasDimensions;
+	return CanvasInfo.Size;
 }
 
 ULive2DModelPhysics* ULive2DMocModel::GetPhysicsSystem()
@@ -319,6 +317,8 @@ void ULive2DMocModel::StartTicking(const float TickRate)
 	GetWorld();
 #endif
 
+	World = GWorld;
+
 	World->GetTimerManager().SetTimer(TickHandle,  FTimerDelegate::CreateUObject(this, &ULive2DMocModel::OnTick, TickRate), TickRate, true);
 }
 
@@ -330,6 +330,8 @@ void ULive2DMocModel::StopTicking()
 #else
 	GetWorld();
 #endif
+
+	World = GWorld;
 	
 	World->GetTimerManager().ClearTimer(TickHandle);
 }
@@ -501,10 +503,11 @@ void ULive2DMocModel::UpdateRenderTarget()
 	GetWorld();
 #endif
 
+	World = GWorld;
 	UCanvas* Canvas;
 
 	FDrawToRenderTargetContext Context;
-	UKismetRenderingLibrary::ClearRenderTarget2D(World, RenderTarget2D, FLinearColor::Transparent);
+	UKismetRenderingLibrary::ClearRenderTarget2D(World, RenderTarget2D, FLinearColor::Black);
 	FVector2D Size;
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(World, RenderTarget2D, Canvas, Size, Context);
 
@@ -553,6 +556,7 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable* Drawable
 	GetWorld();
 #endif
 
+	World = GWorld;
 	UKismetRenderingLibrary::ClearRenderTarget2D(World, RenderTarget, FLinearColor::Transparent);
 	UCanvas* MaskingCanvas;
 	FVector2D Size;
@@ -777,11 +781,11 @@ FVector2D ULive2DMocModel::ProcessVertex(FVector2D Vertex, const FLive2DModelCan
 {
 	FVector2D CanvasCenter(CanvasInfo.PivotOrigin.X/CanvasInfo.PixelsPerUnit,CanvasInfo.PivotOrigin.Y/CanvasInfo.PixelsPerUnit);
 	FVector2D CanvasDimensions(CanvasInfo.Size.X/CanvasInfo.PixelsPerUnit,CanvasInfo.Size.Y/CanvasInfo.PixelsPerUnit);
-	Vertex += CanvasCenter;
 	
-	Vertex /= CanvasDimensions;
-	Vertex.Y = 1.f - Vertex.Y;
-	Vertex *= CanvasInfo.Size / CanvasDimensions;
+	
+	Vertex += CanvasCenter;
+	//Vertex.Y = 1.f - Vertex.Y;
+	Vertex *= CanvasInfo.PixelsPerUnit;
 
 	return Vertex;
 }
