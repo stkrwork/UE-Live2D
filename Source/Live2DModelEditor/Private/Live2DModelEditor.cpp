@@ -151,6 +151,11 @@ FLinearColor FLive2DModelEditor::GetWorldCentricTabColorScale() const
 	return FColor::Red;
 }
 
+void FLive2DModelEditor::OnClose()
+{
+	//...
+}
+
 ULive2DMocModel* FLive2DModelEditor::GetLive2DMocModel() const
 {
 	return Live2DMocModel;

@@ -30,7 +30,7 @@ public:
 	void StartMotion();
 	
 	UFUNCTION(BlueprintCallable, Category="Live2D Motion")
-	void StopMotion(const bool bResetToDefaultState);
+	void StopMotion(const bool bResetToDefaultState = true);
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMotionEvent, const FString&, MotionEventName);
 

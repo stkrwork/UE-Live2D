@@ -173,10 +173,14 @@ FLinearColor FLive2DMotionEditor::GetWorldCentricTabColorScale() const
 	return FColor::Red;
 }
 
+void FLive2DMotionEditor::OnClose()
+{
+	Live2DModelMotion->StopMotion(true);
+}
+
 ULive2DModelMotion* FLive2DMotionEditor::GetLive2DModelMotion() const
 {
 	return Live2DModelMotion;
-;
 }
 
 void FLive2DMotionEditor::SetLive2DModelMotion(ULive2DModelMotion* InLive2DModelMotion)
