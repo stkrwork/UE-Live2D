@@ -3,6 +3,24 @@
 #include "BatchedElements.h"
 #include "CanvasItem.h"
 
+class FLive2DNormalBatchedElements : public FBatchedElementParameters
+{
+public:
+	typedef TFunction<void(FRHITexture*&, FRHISamplerState*&)> FGetTextureAndSamplerDelegate;
+
+	FLive2DNormalBatchedElements(UTexture2D* InTexture2D, ESimpleElementBlendMode InBlendMode)
+		: Texture2D(InTexture2D)
+		, BlendMode(InBlendMode)
+	{}
+
+	/** Binds vertex and pixel shaders for this element */
+	virtual void BindShaders(FRHICommandList& RHICmdList, FGraphicsPipelineStateInitializer& GraphicsPSOInit, ERHIFeatureLevel::Type InFeatureLevel, const FMatrix& InTransform, const float InGamma, const FMatrix& ColorWeights, const FTexture* Texture) override;
+
+private:
+	UTexture2D* Texture2D = nullptr;
+	ESimpleElementBlendMode BlendMode = SE_BLEND_Masked;
+};
+
 class FLive2DMaskedBatchedElements : public FBatchedElementParameters
 {
 public:

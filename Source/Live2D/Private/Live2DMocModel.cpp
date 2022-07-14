@@ -609,7 +609,7 @@ void ULive2DMocModel::ProcessMaskedDrawable(const FLive2DModelDrawable* Drawable
 		TriangleItem.BlendMode = SE_BLEND_Masked;
 		//TriangleItem.StereoDepth = MaskDrawable.DrawOrder;
 
-		if (MaskDrawable.bIsInvertedMask)
+		if (Drawable->bIsInvertedMask)
 		{
 			TriangleItem.BatchedElementParameters = new FLive2DInvertedMaskBatchedElements(Textures[MaskDrawable.TextureIndex]);
 		}
@@ -773,6 +773,7 @@ void ULive2DMocModel::ProcessNonMaskedDrawable(const FLive2DModelDrawable* Drawa
 	}
 
 	TriangleItem.StereoDepth = Drawable->DrawOrder;
+	TriangleItem.BatchedElementParameters = new FLive2DNormalBatchedElements(Textures[Drawable->TextureIndex], TriangleItem.BlendMode);
 	Canvas->DrawItem(TriangleItem);
 }
 

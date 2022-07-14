@@ -1,0 +1,23 @@
+﻿#include "/Engine/Public/Platform.ush"
+#include "/Engine/Private/Common.ush"
+#include "/Engine/Private/ColorUtils.ush"
+
+Texture2D InMainTexture;
+SamplerState InMainTextureSampler;
+half InGamma;
+float InClipRef;
+
+void MainPS(
+	in noperspective float2 InUv : TEXCOORD0,
+	in float4 SvPosition : SV_POSITION,
+	in float4 Color : TEXCOORD1,
+	out float4 OutColor : SV_Target0
+	)
+{
+	float4 BaseColor = InMainTexture.Sample(InMainTextureSampler, InUv);
+	clip(BaseColor.a - InClipRef);
+	OutColor.rgb = BaseColor.rgb * Color.rgb;
+	OutColor.a = BaseColor.a;
+	
+	OutColor = RETURN_COLOR(OutColor);
+}
