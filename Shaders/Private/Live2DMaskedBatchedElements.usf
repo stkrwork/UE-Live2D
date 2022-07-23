@@ -9,6 +9,7 @@ SamplerState InMaskTextureSampler;
 half InGamma;
 float2 InMaskSize;
 float InClipRef;
+float RenderOpacity;
 
 void MainPS(
 	in noperspective float2 InUv : TEXCOORD0,
@@ -20,7 +21,6 @@ void MainPS(
 	float4 BaseColor = InMainTexture.Sample(InMainTextureSampler, InUv);
 	float2 MaskUv = SvPosition.xy / InMaskSize;
 	float4 MaskColor = InMaskTexture.Sample(InMaskTextureSampler, MaskUv);
-	clip(BaseColor.a - MaskColor.a);
 	OutColor.rgb = BaseColor.rgb * Color.rgb;
 	if( InGamma != 1.0 )
 	{
@@ -28,7 +28,8 @@ void MainPS(
 		OutColor.rgb = ApplyGammaCorrection(saturate(OutColor.rgb), 2.2 * InGamma);
 	}
 
-	OutColor.a = MaskColor.a;
+	OutColor.a = MaskColor.a * RenderOpacity;
+	clip(OutColor.a - MaskColor.a);
 	
 	OutColor = RETURN_COLOR(OutColor);
 }

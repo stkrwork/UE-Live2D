@@ -32,6 +32,7 @@ public:
 		SHADER_PARAMETER_SAMPLER(SamplerState, InMainTextureSampler)
 		SHADER_PARAMETER(float, InGamma)
 		SHADER_PARAMETER(float, InClipRef)
+		SHADER_PARAMETER(float, RenderOpacity)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -59,6 +60,7 @@ public:
 		SHADER_PARAMETER(float, InGamma)
 		SHADER_PARAMETER(FVector2D, InMaskSize)
 		SHADER_PARAMETER(float, InClipRef)
+		SHADER_PARAMETER(float, RenderOpacity)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -85,6 +87,7 @@ public:
 		SHADER_PARAMETER_SAMPLER(SamplerState, InMaskTextureSampler)
 		SHADER_PARAMETER(float, InGamma)
 		SHADER_PARAMETER(float, InClipRef)
+		SHADER_PARAMETER(float, RenderOpacity)
 	END_SHADER_PARAMETER_STRUCT()
 };
 
@@ -109,11 +112,11 @@ void FLive2DNormalBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGra
 		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_One, BO_Add, BF_One, BF_One>::GetRHI();
 		break;
 	case SE_BLEND_Modulate:
-		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_DestColor, BF_InverseSourceAlpha, BO_Add, BF_Zero, BF_One>::GetRHI();
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_DestColor, BF_InverseDestColor, BO_Add, BF_DestAlpha, BF_InverseDestAlpha>::GetRHI();
 		break;
 	case SE_BLEND_Masked:
 	default:
-		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_InverseSourceAlpha, BO_Add, BF_One, BF_InverseSourceAlpha>::GetRHI();
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha>::GetRHI();
 		break;
 	}
 	
@@ -126,6 +129,7 @@ void FLive2DNormalBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGra
 	PassParameters.InMainTextureSampler = Texture2D->GetResource()->SamplerStateRHI;
 	PassParameters.InGamma = InGamma;
 	PassParameters.InClipRef = GAlphaRefVal / 255.0f;
+	PassParameters.RenderOpacity = RenderOpacity;
 	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
 }
 
@@ -141,14 +145,14 @@ void FLive2DMaskedBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGra
 	switch (BlendMode)
 	{
 	case SE_BLEND_Additive:
-		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_One, BF_One>::GetRHI();
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_One, BF_One, BO_Add, BF_One, BF_One>::GetRHI();
 		break;
 	case SE_BLEND_Modulate:
-		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_DestColor, BF_Zero>::GetRHI();
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_DestColor, BF_Zero, BO_Add, BF_DestAlpha, BF_Zero>::GetRHI();
 		break;
 	case SE_BLEND_Masked:
 	default:
-		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGB, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha>::GetRHI();
+		GraphicsPSOInit.BlendState = TStaticBlendState<CW_RGBA, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha, BO_Add, BF_SourceAlpha, BF_InverseSourceAlpha>::GetRHI();
 		break;
 	}
 	
@@ -164,6 +168,7 @@ void FLive2DMaskedBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGra
 	PassParameters.InMaskSize = FVector2D(MaskRenderTarget->SizeX, MaskRenderTarget->SizeY);
 	PassParameters.InGamma = InGamma;
 	PassParameters.InClipRef = GAlphaRefVal / 255.0f;
+	PassParameters.RenderOpacity = RenderOpacity;
 	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
 }
 
@@ -187,6 +192,7 @@ void FLive2DMaskBatchedElements::BindShaders(FRHICommandList& RHICmdList, FGraph
 	PassParameters.InMaskTextureSampler = Texture2D->GetResource()->SamplerStateRHI;
 	PassParameters.InGamma = InGamma;
 	PassParameters.InClipRef = GAlphaRefVal / 255.0f;
+	PassParameters.RenderOpacity = RenderOpacity;
 	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
 }
 
@@ -210,5 +216,6 @@ void FLive2DInvertedMaskBatchedElements::BindShaders(FRHICommandList& RHICmdList
 	PassParameters.InMaskTextureSampler = Texture2D->GetResource()->SamplerStateRHI;
 	PassParameters.InGamma = InGamma;
 	PassParameters.InClipRef = GAlphaRefVal / 255.0f;
+	PassParameters.RenderOpacity = RenderOpacity;
 	SetShaderParameters(RHICmdList, PixelShader, PixelShader.GetPixelShader(), PassParameters);
 }

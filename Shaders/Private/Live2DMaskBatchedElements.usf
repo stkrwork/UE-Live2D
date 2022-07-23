@@ -6,6 +6,7 @@ Texture2D InMaskTexture;
 SamplerState InMaskTextureSampler;
 half InGamma;
 float InClipRef;
+float RenderOpacity;
 
 void MainPS(
 	in noperspective float2 InUv : TEXCOORD0,
@@ -15,14 +16,14 @@ void MainPS(
 	)
 {
 	float4 BaseColor = InMaskTexture.Sample(InMaskTextureSampler, InUv);
-	clip(BaseColor.a - InClipRef);
 	OutColor.rgb = BaseColor.rgb * Color.rgb;
 
 #if LIVE_2D_INVERTED_MASK
-	OutColor.a = (1.0 - BaseColor.a);
+	OutColor.a = (1.0 - BaseColor.a) * RenderOpacity;
 #else
-	OutColor.a = BaseColor.a;
+	OutColor.a = BaseColor.a * RenderOpacity;
 #endif
+	clip(OutColor.a - InClipRef);
 
 	OutColor = RETURN_COLOR(OutColor);
 }

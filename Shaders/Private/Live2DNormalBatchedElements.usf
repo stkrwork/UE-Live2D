@@ -6,6 +6,7 @@ Texture2D InMainTexture;
 SamplerState InMainTextureSampler;
 half InGamma;
 float InClipRef;
+float RenderOpacity;
 
 void MainPS(
 	in noperspective float2 InUv : TEXCOORD0,
@@ -15,9 +16,9 @@ void MainPS(
 	)
 {
 	float4 BaseColor = InMainTexture.Sample(InMainTextureSampler, InUv);
-	clip(BaseColor.a - InClipRef);
 	OutColor.rgb = BaseColor.rgb * Color.rgb;
-	OutColor.a = BaseColor.a;
+	OutColor.a = BaseColor.a * RenderOpacity;
+	clip(OutColor.a - InClipRef);
 	
 	OutColor = RETURN_COLOR(OutColor);
 }
