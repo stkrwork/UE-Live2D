@@ -10,7 +10,7 @@ Unreal Engine Plugin for integrating Live2D Cubism Native SDK into Unreal Engine
 | Physics3 Json File Import | Yes |
 | Motion3 Json File Import | Yes |
 | Expressions3 Json File Import | No |
-| Moc3 Model Display | Mostly |
+| Moc3 Model Display | Yes |
 | Motion System | Yes |
 | Physics System | Yes |
 | Expressions System | No |
