@@ -14,6 +14,9 @@ Unreal Engine Plugin for integrating Live2D Cubism Native SDK into Unreal Engine
 | Motion System | Yes |
 | Physics System | Yes |
 | Expressions System | No |
+| Custom Asset Editors | Yes |
+| Utility functions for UMG Image to display model | Yes |
+
 
 ## Setup
 1. Copy the plugin into your Project into the folder \<ProjectRoot\>/Plugins/UELive2D/
